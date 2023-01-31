@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  database:
+    image: 'postgres:14.2-alpine'
+    networks:
+      - app-network
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+
+networks:
+  app-network:
