@@ -21,3 +21,4 @@ jobs:
 
       - name: Run tests
         run: ./.github/scripts/run_tests.sh
+        shell: bash
