@@ -20,5 +20,4 @@ jobs:
         run: go mod verify
 
       - name: Run tests
-        run: ./.github/scripts/run_tests.sh
-        shell: bash
+        run: go test ./...
