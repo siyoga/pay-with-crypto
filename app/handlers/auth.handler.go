@@ -20,5 +20,5 @@ func RegisterHandler(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	return c.Status(fiber.StatusOK).JSON(user)
+	return c.Status(fiber.StatusCreated).JSON(user)
 }
