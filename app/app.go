@@ -1,18 +1,16 @@
 package app
 
 import (
-	"log"
 	"pay-with-crypto/app/controllers"
+	db "pay-with-crypto/app/datastore"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func Start(port string) {
+func Start(config db.DatabaseConfig) *fiber.App {
 	app := fiber.New()
 
-	controllers.HelloController(app)
+	controllers.AuthController(app)
 
-	if err:= app.Listen(":" + port); err != nil {
-		log.Panic(err)
-	}
+	return app
 }
