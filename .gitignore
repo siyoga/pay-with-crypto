@@ -5,6 +5,7 @@
 # Project
 pay-with-crypto
 log/
+test/logs
 *.exe
 *.exe~
 *.dll
