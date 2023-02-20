@@ -6,7 +6,7 @@ services:
     networks:
       - app-network
     ports:
-      - '5432:5432'
+      - '5438:5438'
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_DB=${DATABASE_NAME}
