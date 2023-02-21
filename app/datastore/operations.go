@@ -1,7 +1,11 @@
 package datastore
 
 import (
+	"errors"
+	"pay-with-crypto/app/utility"
 	util "pay-with-crypto/app/utility"
+
+	"gorm.io/gorm"
 )
 
 func Add[T All](i T) bool {
@@ -13,4 +17,20 @@ func Add[T All](i T) bool {
 	}
 
 	return true
+}
+
+func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
+	var i T
+
+	result := Datastore.Where(&value).First(&i)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
+			utility.Error(result.Error, "GetOneBy")
+		}
+
+		return i, false
+	}
+
+	return i, true
 }
