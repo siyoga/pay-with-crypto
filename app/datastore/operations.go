@@ -2,7 +2,6 @@ package datastore
 
 import (
 	"errors"
-	"pay-with-crypto/app/utility"
 	util "pay-with-crypto/app/utility"
 
 	"gorm.io/gorm"
@@ -26,7 +25,7 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
-			utility.Error(result.Error, "GetOneBy")
+			util.Error(result.Error, "GetOneBy")
 		}
 
 		return i, false
