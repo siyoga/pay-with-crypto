@@ -18,7 +18,7 @@ func New(parameters string) {
 	db, err := gorm.Open(postgres.Open(parameters), &gorm.Config{})
 
 	if err != nil {
-		logrus.Error("Error in New.", err)
+		logrus.Error("Error in New", err)
 	}
 
 	db.AutoMigrate(&User{})
