@@ -33,3 +33,19 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 
 	return i, true
 }
+
+func SearchCardByName(nameOfCard string) ([]Card, bool) {
+	var card []Card
+
+	result := Datastore.Where("Name LIKE ?", nameOfCard).Find(&card)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "SearchCardByName")
+		}
+
+		return card, false
+	}
+
+	return card, true
+}

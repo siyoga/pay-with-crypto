@@ -6,9 +6,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func AuthController(a *fiber.App) {
-	route := a.Group("/auth")
+func CardController(a *fiber.App) {
+	route := a.Group("/card")
 
-	route.Post("/register", handlers.RegisterHandler)
 	route.Post("/search", handlers.CardSearcherHandler)
 }
