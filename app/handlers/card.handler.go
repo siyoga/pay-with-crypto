@@ -13,11 +13,11 @@ func CardSearcherHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	resultOfSearch, statementOfSearch := db.SearchCardByName(card.Name)
+	result, state := db.SearchCardByName(card.Name)
 
-	if !statementOfSearch {
+	if !state {
 		return fiber.ErrInternalServerError
 	}
 
-	return c.Status(fiber.StatusOK).JSON(resultOfSearch)
+	return c.Status(fiber.StatusOK).JSON(result)
 }
