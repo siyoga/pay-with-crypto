@@ -12,6 +12,9 @@ func Start(config db.DatabaseConfig) *fiber.App {
 	app := fiber.New()
 
 	controllers.AuthController(app)
+	controllers.CardController(app)
+
+	db.New(fmt.Sprintf("host=%s user=%s password=%s dbname=%s", config.Host, config.User, config.Password, config.Database))
 
 	db.New(fmt.Sprintf("host=%s user=%s password=%s dbname=%s", config.Host, config.User, config.Password, config.Database))
 

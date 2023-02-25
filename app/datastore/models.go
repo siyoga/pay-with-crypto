@@ -26,4 +26,8 @@ type (
 		Company_Name string    `json:"company_name" gorm:"type:string"`
 		Password     string    `json:"password" gorm:"type:string"`
 	}
+
+	Card struct {
+		Name string `json:"name" gorm:"type:string"`
+	}
 )
