@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"pay-with-crypto/app/controllers"
 	db "pay-with-crypto/app/datastore"
 
@@ -11,6 +12,8 @@ func Start(config db.DatabaseConfig) *fiber.App {
 	app := fiber.New()
 
 	controllers.AuthController(app)
+
+	db.New(fmt.Sprintf("host=%s user=%s password=%s dbname=%s", config.Host, config.User, config.Password, config.Database))
 
 	return app
 }
