@@ -5,6 +5,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func RegisterHandler(c *fiber.Ctx) error {
@@ -15,6 +17,12 @@ func RegisterHandler(c *fiber.Ctx) error {
 	}
 
 	user.ID = uuid.Must(uuid.NewV4())
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
+	if err != nil {
+		return fiber.ErrInternalServerError
+	}
+	user.Password = string(hash)
 
 	if ok := db.Add(user); !ok {
 		return fiber.ErrInternalServerError
