@@ -25,7 +25,7 @@ type (
 		ID           uuid.UUID `json:"id" gorm:"type:uuid"`
 		Company_Name string    `json:"company_name" gorm:"type:string"`
 		Password     string    `json:"password" gorm:"type:string"`
-		Cards        []Card    `json:"card_id" gorm:"foreignKey:UserID"`
+		Cards        []Card    `json:"cards" gorm:"foreignKey:UserID"`
 	}
 
 	Card struct {
