@@ -9,6 +9,8 @@ import (
 func CardSearcherHandler(c *fiber.Ctx) error {
 	var card db.Card
 
+	card.Name = c.Query("card_name")
+
 	if err := c.BodyParser(&card); err != nil {
 		return fiber.ErrBadRequest
 	}
