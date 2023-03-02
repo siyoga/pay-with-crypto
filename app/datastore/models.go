@@ -29,7 +29,11 @@ type (
 	}
 
 	Card struct {
-		UserID uuid.UUID `json:"id" gorm:"type:uuid"`
-		Name   string    `json:"name" gorm:"type:string"`
+		UserID      uuid.UUID `json:"id" gorm:"type:uuid"`
+		Name        string    `json:"name" gorm:"type:string"`
+		LinkToProd  string    `json:"linkToProd" gorm:"type:string"`
+		Price       string    `json:"price" gorm:"type:string"`
+		Description string    `json:"description" gorm:"type:string"`
+		Tags        []string  `json:"tags" gorm:"type:text[]"`
 	}
 )
