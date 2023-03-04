@@ -36,4 +36,9 @@ type (
 		Description string    `json:"description" gorm:"type:string"`
 		Tags        []string  `json:"tags" gorm:"type:text[]"`
 	}
+
+	LoginResponse struct {
+		UserID      uuid.UUID `json:"id" gorm:"type:uuid"`
+		AccessToken string    `json:"accessToken" gorm:"string"`
+	}
 )

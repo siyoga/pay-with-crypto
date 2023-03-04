@@ -4,7 +4,10 @@ import (
 	"errors"
 	util "pay-with-crypto/app/utility"
 
+	"github.com/golang-jwt/jwt"
 	"gorm.io/gorm"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Add[T All](i T) bool {
@@ -37,7 +40,7 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 func SearchCardByName(nameOfCard string) ([]Card, bool) {
 	var cards []Card
 
-	result := Datastore.Where("Name LIKE ?", nameOfCard).Find(&cards)
+	result := Datastore.Where("Name LIKE %?%", nameOfCard).Find(&cards)
 
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
@@ -48,4 +51,33 @@ func SearchCardByName(nameOfCard string) ([]Card, bool) {
 	}
 
 	return cards, true
+}
+
+func UserAuth(name string, password string) (User, bool) {
+	var user User
+
+	result := Datastore.Where("Company_Name = ?", name).Find(&user)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "UserAuth")
+		}
+		return user, false
+
+	}
+
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return user, false
+	}
+
+	return user, true
+}
+
+func GeneratToken(key string, payload jwt.MapClaims) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
+
+	t, err := token.SignedString(key)
+
+	return t, err
+
 }

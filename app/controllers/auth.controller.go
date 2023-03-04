@@ -10,5 +10,5 @@ func AuthController(a *fiber.App) {
 	route := a.Group("/auth")
 
 	route.Post("/register", handlers.RegisterHandler)
-	route.Post("/search", handlers.CardSearcherHandler)
+	route.Post("/login", handlers.LoginHandler)
 }
