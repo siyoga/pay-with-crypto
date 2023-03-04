@@ -6,6 +6,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
 
+	"net/mail"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -13,6 +15,11 @@ func RegisterHandler(c *fiber.Ctx) error {
 	var user db.User
 
 	if err := c.BodyParser(&user); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	_, err := mail.ParseAddress(user.Mail)
+	if err != nil {
 		return fiber.ErrBadRequest
 	}
 
