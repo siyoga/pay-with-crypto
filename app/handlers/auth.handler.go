@@ -2,6 +2,7 @@ package handlers
 
 import (
 	db "pay-with-crypto/app/datastore"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
@@ -33,29 +34,51 @@ func RegisterHandler(c *fiber.Ctx) error {
 }
 
 func LoginHandler(c *fiber.Ctx) error {
-	var user db.User
-	var loginResponse db.LoginResponse
+	var requsetData db.User
+	var refreshToken db.RefreshToken
 
-	if err := c.BodyParser(&user); err != nil {
+	if err := c.BodyParser(&requsetData); err != nil {
 		return fiber.ErrBadRequest
 	}
 
-	user, state := db.UserAuth(user.Company_Name, user.Password)
+	user, state := db.UserAuth(requsetData.Company_Name, requsetData.Password)
 	if !state {
 		return fiber.ErrBadRequest
 	}
 
-	payload := jwt.MapClaims{
-		"sub": user.ID,
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(requsetData.Password)); err != nil {
+		return fiber.ErrBadRequest
 	}
 
-	token, err := db.GeneratToken("secretKey", payload)
-	if err != nil {
+	payload := jwt.MapClaims{
+		"sub":       user.ID,
+		"generated": time.Now().Add(15 * 24 * time.Hour),
+	}
+
+	response, errs := generatTokenResponse(payload)
+	if errs != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	loginResponse.UserID = user.ID
-	loginResponse.AccessToken = token
+	refreshToken.Token = response[1]
 
-	return c.Status(fiber.StatusOK).JSON(loginResponse)
+	return c.Status(fiber.StatusOK).SendString(response[0])
+}
+
+func generatTokenResponse(payload jwt.MapClaims) ([]string, []error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
+
+	accessToken, err_access := token.SignedString("secretAccessKey")
+	refreshToken, err_refresh := token.SignedString("secretRefreshKey")
+
+	response := make([]string, 2)
+	response[0] = accessToken
+	response[1] = refreshToken
+
+	errors := make([]error, 2)
+	errors[0] = err_access
+	errors[1] = err_refresh
+
+	return response, errors
+
 }

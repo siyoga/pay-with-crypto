@@ -4,10 +4,7 @@ import (
 	"errors"
 	util "pay-with-crypto/app/utility"
 
-	"github.com/golang-jwt/jwt"
 	"gorm.io/gorm"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 func Add[T All](i T) bool {
@@ -64,20 +61,5 @@ func UserAuth(name string, password string) (User, bool) {
 		return user, false
 
 	}
-
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	if err != nil {
-		return user, false
-	}
-
 	return user, true
-}
-
-func GeneratToken(key string, payload jwt.MapClaims) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
-
-	t, err := token.SignedString(key)
-
-	return t, err
-
 }

@@ -37,8 +37,7 @@ type (
 		Tags        []string  `json:"tags" gorm:"type:text[]"`
 	}
 
-	LoginResponse struct {
-		UserID      uuid.UUID `json:"id" gorm:"type:uuid"`
-		AccessToken string    `json:"accessToken" gorm:"string"`
+	RefreshToken struct {
+		Token string `json:"token" gorm:"string"`
 	}
 )
