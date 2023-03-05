@@ -6,10 +6,7 @@ require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/gofiber/fiber/v2 v2.42.0 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
-<<<<<<< HEAD
-=======
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
->>>>>>> b092f3af4ecb3fd202aeaeb6887df52e562d51c2
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect

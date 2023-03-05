@@ -6,12 +6,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
-<<<<<<< HEAD
-=======
 	"github.com/golang-jwt/jwt"
 
 	"net/mail"
->>>>>>> b092f3af4ecb3fd202aeaeb6887df52e562d51c2
 
 	"golang.org/x/crypto/bcrypt"
 )
