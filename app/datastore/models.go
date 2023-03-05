@@ -18,7 +18,7 @@ type (
 	}
 
 	All interface {
-		User
+		User | RefreshToken | Card
 	}
 
 	User struct {

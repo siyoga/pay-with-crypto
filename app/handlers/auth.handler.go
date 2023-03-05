@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	db "pay-with-crypto/app/datastore"
 	"time"
 
@@ -69,7 +70,13 @@ func LoginHandler(c *fiber.Ctx) error {
 
 	refreshToken.Token = response[1]
 
-	return c.Status(fiber.StatusOK).SendString(response[0])
+	if ok := db.Add(refreshToken); !ok {
+		return fiber.ErrInternalServerError
+	}
+
+	responseJSON, _ := json.Marshal(response)
+
+	return c.Status(fiber.StatusOK).JSON(responseJSON)
 }
 
 func generatTokenResponse(payload jwt.MapClaims) ([]string, []error) {
