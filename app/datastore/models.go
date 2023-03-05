@@ -38,4 +38,8 @@ type (
 		Description string    `json:"description" gorm:"type:string"`
 		Tags        []string  `json:"tags" gorm:"type:text[]"`
 	}
+
+	RefreshToken struct {
+		Token string `json:"token" gorm:"string"`
+	}
 )
