@@ -22,12 +22,24 @@ type (
 	}
 
 	User struct {
-		ID           uuid.UUID `json:"id" gorm:"type:uuid"`
-		Company_Name string    `json:"company_name" gorm:"type:string"`
-		Password     string    `json:"password" gorm:"type:string"`
+		ID            uuid.UUID `json:"id" gorm:"type:uuid"`
+		Company_Name  string    `json:"company_name" gorm:"type:string"`
+		Password      string    `json:"password" gorm:"type:string"`
+		Mail          string    `json:"mail" gorm:"type:string"`
+		LinkToCompany string    `json:"linkToCompany" gorm:"type:string"`
+		Cards         []Card    `json:"cards" gorm:"foreignKey:UserID"`
 	}
 
 	Card struct {
-		Name string `json:"name" gorm:"type:string"`
+		UserID      uuid.UUID `json:"id" gorm:"type:uuid"`
+		Name        string    `json:"name" gorm:"type:string"`
+		LinkToProd  string    `json:"linkToProd" gorm:"type:string"`
+		Price       string    `json:"price" gorm:"type:string"`
+		Description string    `json:"description" gorm:"type:string"`
+		Tags        []string  `json:"tags" gorm:"type:text[]"`
+	}
+
+	RefreshToken struct {
+		Token string `json:"token" gorm:"string"`
 	}
 )

@@ -37,7 +37,7 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 func SearchCardByName(nameOfCard string) ([]Card, bool) {
 	var cards []Card
 
-	result := Datastore.Where("Name LIKE ?", nameOfCard).Find(&cards)
+	result := Datastore.Where("Name LIKE %?%", nameOfCard).Find(&cards)
 
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
@@ -48,4 +48,18 @@ func SearchCardByName(nameOfCard string) ([]Card, bool) {
 	}
 
 	return cards, true
+}
+
+func UserAuth(name string, password string) (User, bool) {
+	var user User
+
+	result := Datastore.Where("Company_Name = ?", name).Find(&user)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "UserAuth")
+		}
+		return user, false
+
+	}
+	return user, true
 }
