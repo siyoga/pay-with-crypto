@@ -63,26 +63,33 @@ func LoginHandler(c *fiber.Ctx) error {
 	}
 
 	response, errs := generatTokenResponse(payload)
-	if errs != nil {
-		return c.SendStatus(fiber.StatusInternalServerError)
+	if errs[0] != nil {
+		return fiber.ErrInternalServerError
+	}
+	if errs[1] != nil {
+		return fiber.ErrInternalServerError
 	}
 
-	refreshToken.Token = response[1]
+	refreshToken.Token = response.RefreshToken
 
-	return c.Status(fiber.StatusOK).SendString(response[0])
+	if ok := db.Add(refreshToken); !ok {
+		return fiber.ErrBadRequest
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func generatTokenResponse(payload jwt.MapClaims) ([]string, []error) {
+func generatTokenResponse(payload jwt.MapClaims) (Response, []error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
-
-	accessToken, err_access := token.SignedString("secretAccessKey")
-	refreshToken, err_refresh := token.SignedString("secretRefreshKey")
-
-	response := make([]string, 2)
-	response[0] = accessToken
-	response[1] = refreshToken
-
+	var response Response
 	errors := make([]error, 2)
+
+	accessToken, err_access := token.SignedString([]byte("secretAccessKey"))
+	refreshToken, err_refresh := token.SignedString([]byte("secretRefreshKey"))
+
+	response.AccessToken = accessToken
+	response.RefreshToken = refreshToken
+
 	errors[0] = err_access
 	errors[1] = err_refresh
 
