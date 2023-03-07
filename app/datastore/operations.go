@@ -21,11 +21,27 @@ func Add[T All](i T) bool {
 func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
 	var i T
 
-	result := Datastore.Where(&value).First(&i)
+	result := Datastore.Where(map[string]interface{}{key: value}).First(&i)
 
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
 			util.Error(result.Error, "GetOneBy")
+		}
+
+		return i, false
+	}
+
+	return i, true
+}
+
+func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newValue string) (T, bool) {
+	var i T
+
+	result := Datastore.Model(&i).Where(map[string]interface{}{key: value}).Update(updatedKey, newValue)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
+			util.Error(result.Error, "UpdateOneBy")
 		}
 
 		return i, false

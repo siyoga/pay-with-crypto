@@ -4,7 +4,8 @@
 
 # Project
 pay-with-crypto
-log/
+mc
+logs/
 test/logs
 *.exe
 *.exe~

@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"github.com/gofrs/uuid"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -31,12 +32,14 @@ type (
 	}
 
 	Card struct {
-		UserID      uuid.UUID `json:"id" gorm:"type:uuid"`
-		Name        string    `json:"name" gorm:"type:string"`
-		LinkToProd  string    `json:"linkToProd" gorm:"type:string"`
-		Price       string    `json:"price" gorm:"type:string"`
-		Description string    `json:"description" gorm:"type:string"`
-		Tags        []string  `json:"tags" gorm:"type:text[]"`
+		Id          uuid.UUID      `json:"id" gorm:"type:uuid"`
+		UserID      uuid.UUID      `json:"user_id" gorm:"type:uuid"`
+		Name        string         `json:"name" gorm:"type:string"`
+		Image       string         `json:"image" gorm:"type:string"`
+		LinkToProd  string         `json:"linkToProd" gorm:"type:string"`
+		Price       string         `json:"price" gorm:"type:string"`
+		Description string         `json:"description" gorm:"type:string"`
+		Tags        pq.StringArray `json:"tags" gorm:"type:text[]"`
 	}
 
 	RefreshToken struct {

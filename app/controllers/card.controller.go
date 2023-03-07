@@ -10,4 +10,6 @@ func CardController(a *fiber.App) {
 	route := a.Group("/card")
 
 	route.Get("/search", handlers.CardSearcherHandler)
+	route.Post("/uploadLogo", handlers.CardLogoUploaderHandler)
+	route.Post("/create", handlers.CardCreatorHandler)
 }
