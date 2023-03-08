@@ -55,7 +55,7 @@ func SearchCardByName(value string) ([]Card, bool) {
 func SearchCardsByTags(value string) ([]Card, bool) {
 	var cards []Card
 
-	splitedTags := pq.StringArray(strings.Split(value, "/"))
+	splitedTags := pq.StringArray(strings.Split(value, "&"))
 
 	result := Datastore.Where("Tags && ?", splitedTags).Find(&cards)
 	if result.Error != nil {
