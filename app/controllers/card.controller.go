@@ -10,4 +10,6 @@ func CardController(a *fiber.App) {
 	route := a.Group("/card")
 
 	route.Get("/search", handlers.CardSearcherHandler)
+
+	route.Put("/:id", handlers.CardUpdateHandler)
 }
