@@ -24,7 +24,7 @@ func CardSearcherHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(result)
 }
 
-func CardUpdateHandler(c *fiber.Ctx) error {
+func CardEditHandler(c *fiber.Ctx) error {
 	var changedCard db.Card
 
 	if err := c.BodyParser(&changedCard); err != nil {

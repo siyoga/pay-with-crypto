@@ -11,5 +11,5 @@ func CardController(a *fiber.App) {
 
 	route.Get("/search", handlers.CardSearcherHandler)
 
-	route.Put("/:id", handlers.CardUpdateHandler)
+	route.Put("/edit", handlers.CardEditHandler)
 }
