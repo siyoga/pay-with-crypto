@@ -13,7 +13,11 @@ func CardSearcherByNameHandler(c *fiber.Ctx) error {
 	var result []db.Card
 	var state bool
 
-	result, state = db.SearchCardByName(c.Query("card_name"))
+	value := c.Query("card_name")
+
+	if value != "" {
+		result, state = db.SearchCardByName(value)
+	}
 
 	if !state {
 		return fiber.ErrInternalServerError
@@ -26,7 +30,11 @@ func CardsSearcherByTagsHandler(c *fiber.Ctx) error {
 	var result []db.Card
 	var state bool
 
-	result, state = db.SearchCardsByTags(c.Query("tags"))
+	value := c.Query("tags")
+
+	if value != "" {
+		result, state = db.SearchCardsByTags(value)
+	}
 
 	if !state {
 		return fiber.ErrInternalServerError
