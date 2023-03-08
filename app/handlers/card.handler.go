@@ -82,12 +82,15 @@ func CardLogoUploaderHandler(c *fiber.Ctx) error {
 
 func CardCreatorHandler(c *fiber.Ctx) error {
 	var newCard db.Card
+	user := c.Locals("user").(db.User)
 
 	if err := c.BodyParser(&newCard); err != nil {
 		return fiber.ErrBadRequest
 	}
 
 	newCard.Id = uuid.Must(uuid.NewV4()) // TODO: set userId from locals
+
+	newCard.UserID = user.ID
 
 	if ok := db.Add(newCard); !ok {
 		return fiber.ErrInternalServerError
