@@ -52,15 +52,15 @@ func SearchCardByName(value string) ([]Card, bool) {
 	return cards, true
 }
 
-func SearchCardsByTags(value string) ([]Card, bool) {
+func SearchCardsByTags(rawTags string) ([]Card, bool) {
 	var cards []Card
 
-	splitedTags := pq.StringArray(strings.Split(value, "&"))
+	splitedTags := pq.StringArray(strings.Split(rawTags, "&"))
 
 	result := Datastore.Where("Tags && ?", splitedTags).Find(&cards)
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "SearchCardByName")
+			util.Error(result.Error, "SearchCardsByTags")
 		}
 
 		return cards, false
