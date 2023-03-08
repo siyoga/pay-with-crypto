@@ -1,6 +1,8 @@
 package datastore
 
 import (
+	"time"
+
 	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
@@ -19,7 +21,7 @@ type (
 	}
 
 	All interface {
-		User | RefreshToken | Card
+		User | RefreshToken | Card | Admin
 	}
 
 	User struct {
@@ -40,6 +42,16 @@ type (
 		Price       string         `json:"price" gorm:"type:string"`
 		Description string         `json:"description" gorm:"type:string"`
 		Tags        pq.StringArray `json:"tags" gorm:"type:text[]"`
+	}
+
+	Admin struct {
+		ID        uuid.UUID `json:"id" gorm:"type:uuid"`
+		UserName  string    `json:"username" gorm:"type:string"`
+		FirstName string    `json:"first_name" gorm:"type:string"`
+		LastName  string    `json:"last_name" gorm:"type:string"`
+		Password  string    `json:"password" gorm:"type:string"`
+		CreatedAt time.Time //add ``
+		UpdatedAt time.Time //add ``
 	}
 
 	RefreshToken struct {
