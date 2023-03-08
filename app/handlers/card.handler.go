@@ -78,3 +78,19 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 
 	return c.Status(201).JSON(newCard)
 }
+
+func CardEditHandler(c *fiber.Ctx) error {
+	var changedCard db.Card
+
+	if err := c.BodyParser(&changedCard); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	result, ok := db.GetOneBy[db.Card]("id", changedCard.Id)
+	if ok == false {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Not found card"})
+	}
+
+	db.Datastore.Model(&result).Updates(changedCard)
+	return c.Status(200).JSON(fiber.Map{"message": "Card successfully edited"})
+}
