@@ -36,10 +36,10 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 	return i, true
 }
 
-func SearchCardByName(nameOfCard string) ([]Card, bool) {
+func SearchCardByName(value string) ([]Card, bool) {
 	var cards []Card
 
-	result := Datastore.Where("Name LIKE %?%", nameOfCard).Find(&cards)
+	result := Datastore.Where("Name LIKE ?", "%"+value+"%").Find(&cards)
 
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
@@ -52,12 +52,12 @@ func SearchCardByName(nameOfCard string) ([]Card, bool) {
 	return cards, true
 }
 
-func SearchCardsByTags(stringOfTegs string) ([]Card, bool) {
+func SearchCardsByTags(value string) ([]Card, bool) {
 	var cards []Card
 
-	tags := pq.StringArray(strings.Split(stringOfTegs, ","))
+	splitedTags := pq.StringArray(strings.Split(value, "/"))
 
-	result := Datastore.Where("Tags @> ?", tags).Find(&cards)
+	result := Datastore.Where("Tags && ?", splitedTags).Find(&cards)
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "SearchCardByName")
