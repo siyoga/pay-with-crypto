@@ -10,11 +10,15 @@ import (
 )
 
 func CardSearcherHandler(c *fiber.Ctx) error {
-	var card db.Card
+	var result []db.Card
+	var state bool
 
-	card.Name = c.Query("card_name")
-
-	result, state := db.SearchCardByName(card.Name)
+	if c.Query("card_name") != "" {
+		result, state = db.SearchCardByName(c.Query("card_name"))
+	}
+	if c.Query("tags") != "" {
+		result, state = db.SearchCardsByTags(c.Query("tags"))
+	}
 
 	if !state {
 		return fiber.ErrInternalServerError

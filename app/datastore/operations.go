@@ -3,7 +3,9 @@ package datastore
 import (
 	"errors"
 	util "pay-with-crypto/app/utility"
+	"strings"
 
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -34,22 +36,6 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 	return i, true
 }
 
-func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newValue string) (T, bool) {
-	var i T
-
-	result := Datastore.Model(&i).Where(map[string]interface{}{key: value}).Update(updatedKey, newValue)
-
-	if result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
-			util.Error(result.Error, "UpdateOneBy")
-		}
-
-		return i, false
-	}
-
-	return i, true
-}
-
 func SearchCardByName(nameOfCard string) ([]Card, bool) {
 	var cards []Card
 
@@ -64,6 +50,39 @@ func SearchCardByName(nameOfCard string) ([]Card, bool) {
 	}
 
 	return cards, true
+}
+
+func SearchCardsByTags(stringOfTegs string) ([]Card, bool) {
+	var cards []Card
+
+	tags := pq.StringArray(strings.Split(stringOfTegs, ","))
+
+	result := Datastore.Where("Tags @> ?", tags).Find(&cards)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "SearchCardByName")
+		}
+
+		return cards, false
+	}
+
+	return cards, true
+}
+
+func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newValue string) (T, bool) {
+	var i T
+
+	result := Datastore.Model(&i).Where(map[string]interface{}{key: value}).Update(updatedKey, newValue)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
+			util.Error(result.Error, "UpdateOneBy")
+		}
+
+		return i, false
+	}
+
+	return i, true
 }
 
 func UserAuth(name string, password string) (User, bool) {
