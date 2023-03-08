@@ -2,6 +2,7 @@ package handlers
 
 import (
 	db "pay-with-crypto/app/datastore"
+	"pay-with-crypto/app/utility"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -79,9 +80,9 @@ func LoginHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func generatTokenResponse(payload jwt.MapClaims) (Response, []error) {
+func generatTokenResponse(payload jwt.MapClaims) (utility.JWTTokenPair, []error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
-	var response Response
+	var response utility.JWTTokenPair
 	errors := make([]error, 2)
 
 	accessToken, err_access := token.SignedString([]byte("secretAccessKey"))

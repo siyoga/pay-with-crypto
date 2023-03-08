@@ -1,7 +1,10 @@
 package datastore
 
 import (
+	"time"
+
 	"github.com/gofrs/uuid"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -18,7 +21,7 @@ type (
 	}
 
 	All interface {
-		User | RefreshToken | Card
+		User | RefreshToken | Card | Admin
 	}
 
 	User struct {
@@ -31,13 +34,24 @@ type (
 	}
 
 	Card struct {
-		Id          uuid.UUID `json:"id" gorm:"type:uuid"`
-		UserID      uuid.UUID `json:"userid" gorm:"type:uuid"`
-		Name        string    `json:"name" gorm:"type:string"`
-		LinkToProd  string    `json:"linkToProd" gorm:"type:string"`
-		Price       string    `json:"price" gorm:"type:string"`
-		Description string    `json:"description" gorm:"type:string"`
-		Tags        []string  `json:"tags" gorm:"type:text[]"`
+		Id          uuid.UUID      `json:"id" gorm:"type:uuid"`
+		UserID      uuid.UUID      `json:"user_id" gorm:"type:uuid"`
+		Name        string         `json:"name" gorm:"type:string"`
+		Image       string         `json:"image" gorm:"type:string"`
+		LinkToProd  string         `json:"linkToProd" gorm:"type:string"`
+		Price       string         `json:"price" gorm:"type:string"`
+		Description string         `json:"description" gorm:"type:string"`
+		Tags        pq.StringArray `json:"tags" gorm:"type:text[]"`
+	}
+
+	Admin struct {
+		ID        uuid.UUID `json:"id" gorm:"type:uuid"`
+		UserName  string    `json:"username" gorm:"type:string"`
+		FirstName string    `json:"first_name" gorm:"type:string"`
+		LastName  string    `json:"last_name" gorm:"type:string"`
+		Password  string    `json:"password" gorm:"type:string"`
+		CreatedAt time.Time //add ``
+		UpdatedAt time.Time //add ``
 	}
 
 	RefreshToken struct {
