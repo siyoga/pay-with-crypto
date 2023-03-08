@@ -1,4 +1,0 @@
-[31mERRO[0m[2023-03-06T17:08:05+03:00] Error in New.failed to connect to `host=localhost user=admin database=test`: dial error (dial tcp 127.0.0.1:5432: connect: connection refused) 
-[31mERRO[0m[2023-03-06T17:08:05+03:00] Error in New.failed to connect to `host=localhost user=admin database=test`: dial error (dial tcp 127.0.0.1:5432: connect: connection refused) 
-[31mERRO[0m[2023-03-06T17:47:59+03:00] Error in New.failed to connect to `host=localhost user=admin database=test`: dial error (dial tcp 127.0.0.1:5432: connect: connection refused) 
-[31mERRO[0m[2023-03-06T17:47:59+03:00] Error in New.failed to connect to `host=localhost user=admin database=test`: dial error (dial tcp 127.0.0.1:5432: connect: connection refused) 
