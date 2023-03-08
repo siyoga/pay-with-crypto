@@ -11,6 +11,7 @@ func CardController(a *fiber.App) {
 	route := a.Group("/card")
 
 	route.Get("/search", middleware.Auth, handlers.CardSearcherHandler)
+  route.Get("/search/tags", middlewate.Auth, handlers.CardsSearcherByTagsHandler)
 	route.Post("/uploadLogo", middleware.Auth, handlers.CardLogoUploaderHandler)
 	route.Post("/create", middleware.Auth, handlers.CardCreatorHandler)
 }

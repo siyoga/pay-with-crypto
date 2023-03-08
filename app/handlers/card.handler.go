@@ -9,12 +9,32 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-func CardSearcherHandler(c *fiber.Ctx) error {
-	var card db.Card
+func CardSearcherByNameHandler(c *fiber.Ctx) error {
+	var result []db.Card
+	var state bool
 
-	card.Name = c.Query("card_name")
+	value := c.Query("card_name")
 
-	result, state := db.SearchCardByName(card.Name)
+	if value != "" {
+		result, state = db.SearchCardByName(value)
+	}
+
+	if !state {
+		return fiber.ErrInternalServerError
+	}
+
+	return c.Status(fiber.StatusOK).JSON(result)
+}
+
+func CardsSearcherByTagsHandler(c *fiber.Ctx) error {
+	var result []db.Card
+	var state bool
+
+	value := c.Query("tags")
+
+	if value != "" {
+		result, state = db.SearchCardsByTags(value)
+	}
 
 	if !state {
 		return fiber.ErrInternalServerError

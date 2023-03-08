@@ -3,7 +3,9 @@ package datastore
 import (
 	"errors"
 	util "pay-with-crypto/app/utility"
+	"strings"
 
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -34,6 +36,39 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 	return i, true
 }
 
+func SearchCardByName(value string) ([]Card, bool) {
+	var cards []Card
+
+	result := Datastore.Where("Name LIKE ?", "%"+value+"%").Find(&cards)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "SearchCardByName")
+		}
+
+		return cards, false
+	}
+
+	return cards, true
+}
+
+func SearchCardsByTags(rawTags string) ([]Card, bool) {
+	var cards []Card
+
+	splitedTags := pq.StringArray(strings.Split(rawTags, "&"))
+
+	result := Datastore.Where("Tags && ?", splitedTags).Find(&cards)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "SearchCardsByTags")
+		}
+
+		return cards, false
+	}
+
+	return cards, true
+}
+
 func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newValue string) (T, bool) {
 	var i T
 
@@ -48,22 +83,6 @@ func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newVal
 	}
 
 	return i, true
-}
-
-func SearchCardByName(nameOfCard string) ([]Card, bool) {
-	var cards []Card
-
-	result := Datastore.Where("Name LIKE %?%", nameOfCard).Find(&cards)
-
-	if result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "SearchCardByName")
-		}
-
-		return cards, false
-	}
-
-	return cards, true
 }
 
 func UserAuth(name string, password string) (User, bool) {
