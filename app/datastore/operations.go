@@ -100,6 +100,23 @@ func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newVal
 	return i, true
 }
 
+func DeleteCardsById(id string) bool {
+	var state bool
+
+	_, found := GetOneBy[Card]("id", id)
+	if found {
+		result := Datastore.Delete(&Card{}, "id = ?", id)
+		if result.Error != nil {
+			if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+				util.Error(result.Error, "DeleteCardsById")
+			}
+			state = false
+		}
+		state = true
+	}
+	return state
+}
+
 func UserAuth(name string, password string) (User, bool) {
 	var user User
 
