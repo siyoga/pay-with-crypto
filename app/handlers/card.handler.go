@@ -127,6 +127,10 @@ func CardEditHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
+	if !db.IsCardValidToLoginedUser(changedCard.Id.String(), c.Locals("user").(db.User).ID.String()) {
+		return fiber.ErrForbidden
+	}
+
 	db.UpdateCardOnId(changedCard)
 
 	return c.Status(200).JSON(fiber.Map{"message": "Card successfully edited"})
