@@ -120,6 +120,7 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 	return c.Status(201).JSON(newCard)
 }
 
+
 func CardDeleteHandler(c *fiber.Ctx) error {
 	var card db.Card
 	var state bool
@@ -133,4 +134,21 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(state)
+}
+
+func CardEditHandler(c *fiber.Ctx) error {
+	var changedCard db.Card
+	loginedUser := c.Locals("user").(db.User).ID
+
+	if err := c.BodyParser(&changedCard); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	if !db.IsCardValidToLoginedUser(changedCard.Id, loginedUser) {
+		return fiber.ErrForbidden
+	}
+
+	db.UpdateCardOnId(changedCard)
+
+	return c.Status(200).JSON(fiber.Map{"message": "Card successfully edited"})
 }
