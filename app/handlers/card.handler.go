@@ -121,21 +121,15 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 }
 
 func CardDeleteHandler(c *fiber.Ctx) error {
-
+	var card db.Card
 	var state bool
 
-	id := c.Query("id")
-
-	if id == "" {
-		return fiber.ErrBadRequest
+	if err := c.BodyParser(&card); err != nil {
+		return err
 	}
 
-	if id != "" {
-		state = db.DeleteCardsById(id)
-	}
-
-	if !state {
-		return fiber.ErrInternalServerError
+	if state = db.DeleteCardsById(card.Id); !state {
+		return fiber.ErrNotFound
 	}
 
 	return c.Status(fiber.StatusOK).JSON(state)

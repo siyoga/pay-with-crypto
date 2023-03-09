@@ -5,6 +5,7 @@ import (
 	util "pay-with-crypto/app/utility"
 	"strings"
 
+	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -100,7 +101,21 @@ func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newVal
 	return i, true
 }
 
-func DeleteCardsById(id string) bool {
+func UserAuth(name string, password string) (User, bool) {
+	var user User
+
+	result := Datastore.Where("Company_Name = ?", name).Find(&user)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "UserAuth")
+		}
+		return user, false
+
+	}
+	return user, true
+}
+
+func DeleteCardsById(id uuid.UUID) bool {
 	var state bool
 
 	_, found := GetOneBy[Card]("id", id)
@@ -115,18 +130,4 @@ func DeleteCardsById(id string) bool {
 		state = true
 	}
 	return state
-}
-
-func UserAuth(name string, password string) (User, bool) {
-	var user User
-
-	result := Datastore.Where("Company_Name = ?", name).Find(&user)
-	if result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "UserAuth")
-		}
-		return user, false
-
-	}
-	return user, true
 }
