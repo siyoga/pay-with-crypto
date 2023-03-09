@@ -13,5 +13,6 @@ func CardController(a *fiber.App) {
 	route.Get("/search", middleware.Auth, handlers.CardSearcherHandler)
 	route.Post("/uploadLogo", middleware.Auth, handlers.CardLogoUploaderHandler)
 	route.Post("/create", middleware.Auth, handlers.CardCreatorHandler)
-	route.Put("/edit", handlers.CardEditHandler)
+	route.Put("/edit", middleware.Auth, handlers.CardEditHandler)
+
 }
