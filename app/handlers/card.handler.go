@@ -131,3 +131,12 @@ func CardEditHandler(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(fiber.Map{"message": "Card successfully edited"})
 }
+
+func CardsThatNotApproved(c *fiber.Ctx) error {
+	cards, err := db.GetAllCards[db.Card]("IsApproved", false)
+	if err == false {
+		return c.Status(200).JSON(cards)
+	}
+
+	return c.Status(200).JSON(cards)
+}

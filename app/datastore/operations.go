@@ -133,3 +133,19 @@ func UpdateCardOnId(changedCard Card) (Card, bool) {
 
 	return card, true
 }
+
+func GetAllCards[T All](key string, value interface{}) (T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
+	var i T
+
+	result := Datastore.Where(map[string]interface{}{key: value}).Find(&i)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			util.Error(result.Error, "GetAllCards")
+		}
+
+		return i, false
+	}
+
+	return i, true
+}
