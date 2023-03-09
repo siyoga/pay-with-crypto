@@ -5,6 +5,7 @@ import (
 	util "pay-with-crypto/app/utility"
 	"strings"
 
+	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -134,7 +135,7 @@ func UpdateCardOnId(changedCard Card) (Card, bool) {
 	return card, true
 }
 
-func IsCardValidToLoginedUser(cardId string, loginedUserId string) bool {
+func IsCardValidToLoginedUser(cardId uuid.UUID, loginedUserId uuid.UUID) bool {
 	var state bool
 	var card Card
 
@@ -143,7 +144,7 @@ func IsCardValidToLoginedUser(cardId string, loginedUserId string) bool {
 		state = false
 	}
 
-	if card.UserID.String() == loginedUserId {
+	if card.UserID == loginedUserId {
 		state = true
 	}
 

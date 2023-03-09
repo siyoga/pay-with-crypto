@@ -122,12 +122,13 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 
 func CardEditHandler(c *fiber.Ctx) error {
 	var changedCard db.Card
+	loginedUser := c.Locals("user").(db.User).ID
 
 	if err := c.BodyParser(&changedCard); err != nil {
 		return fiber.ErrBadRequest
 	}
 
-	if !db.IsCardValidToLoginedUser(changedCard.Id.String(), c.Locals("user").(db.User).ID.String()) {
+	if !db.IsCardValidToLoginedUser(changedCard.Id, loginedUser) {
 		return fiber.ErrForbidden
 	}
 
