@@ -69,6 +69,21 @@ func SearchCardsByTags(rawTags string) ([]Card, bool) {
 	return cards, true
 }
 
+func SearchCardsById(id string) ([]Card, bool) {
+	var cards []Card
+
+	result := Datastore.Where("user_id = ?", id).Find(&cards)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "SearchCardsById")
+		}
+
+		return cards, false
+	}
+
+	return cards, true
+}
+
 func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newValue string) (T, bool) {
 	var i T
 
