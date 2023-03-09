@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"errors"
+	"fmt"
 	util "pay-with-crypto/app/utility"
 	"strings"
 
@@ -134,18 +135,20 @@ func UpdateCardOnId(changedCard Card) (Card, bool) {
 	return card, true
 }
 
-func GetAllCards[T All](key string, value interface{}) (T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
+func GetAllCards[T All](key string, value interface{}) ([]T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
 	var i T
+	var items []T
 
-	result := Datastore.Where(map[string]interface{}{key: value}).Find(&i)
+	fmt.Print(i)
+	result := Datastore.Where(map[string]interface{}{key: value}).Find(&items)
 
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			util.Error(result.Error, "GetAllCards")
 		}
 
-		return i, false
+		return items, false
 	}
 
-	return i, true
+	return items, true
 }

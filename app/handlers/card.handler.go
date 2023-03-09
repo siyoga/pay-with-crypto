@@ -133,7 +133,7 @@ func CardEditHandler(c *fiber.Ctx) error {
 }
 
 func CardsThatNotApproved(c *fiber.Ctx) error {
-	cards, err := db.GetAllCards[db.Card]("IsApproved", false)
+	cards, err := db.GetAllCards[db.Card]("approved", false)
 	if err == false {
 		return c.Status(200).JSON(cards)
 	}
