@@ -156,3 +156,22 @@ func CardEditHandler(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(fiber.Map{"message": "Card successfully edited"})
 }
+
+func TagCreateHandler(c *fiber.Ctx) error {
+	var newTag db.Tag
+	admin := c.Locals("admin").(db.Admin)
+
+	if err := c.BodyParser(&newTag); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	newTag.ID = uuid.Must(uuid.NewV4())
+
+	newTag.AdminID = admin.ID
+
+	if ok := db.Add(newTag); !ok {
+		return fiber.ErrInternalServerError
+	}
+
+	return c.Status(201).JSON(newTag)
+}

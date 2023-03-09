@@ -21,7 +21,7 @@ type (
 	}
 
 	All interface {
-		User | RefreshToken | Card | Admin
+		User | RefreshToken | Card | Admin | Tag
 	}
 
 	User struct {
@@ -52,6 +52,12 @@ type (
 		Password  string    `json:"password" gorm:"type:string"`
 		CreatedAt time.Time //add ``
 		UpdatedAt time.Time //add ``
+	}
+
+	Tag struct {
+		ID      uuid.UUID `json:"id" gorm:"type:uuid"`
+		Name    string    `json:"tagname" gorm:"type:string"`
+		AdminID uuid.UUID //add ''
 	}
 
 	RefreshToken struct {
