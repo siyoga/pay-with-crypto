@@ -43,6 +43,27 @@ func CardsSearcherByTagsHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(result)
 }
 
+func CardsSearcherByIdHandler(c *fiber.Ctx) error {
+	var result []db.Card
+	var state bool
+
+	id := c.Query("id")
+
+	if id == "" {
+		return fiber.ErrBadRequest
+	}
+
+	if id != "" {
+		result, state = db.SearchCardsById(id)
+	}
+
+	if !state {
+		return fiber.ErrInternalServerError
+	}
+
+	return c.Status(fiber.StatusOK).JSON(result)
+}
+
 func CardLogoUploaderHandler(c *fiber.Ctx) error {
 	logoBucket := os.Getenv("S3_BUCKET_CARD_LOGO")
 	cardLogo, err := c.FormFile("cardLogo")
