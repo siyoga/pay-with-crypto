@@ -2,7 +2,6 @@ package datastore
 
 import (
 	"errors"
-	"fmt"
 	util "pay-with-crypto/app/utility"
 	"strings"
 
@@ -136,10 +135,8 @@ func UpdateCardOnId(changedCard Card) (Card, bool) {
 }
 
 func GetAllCards[T All](key string, value interface{}) ([]T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
-	var i T
 	var items []T
 
-	fmt.Print(i)
 	result := Datastore.Where(map[string]interface{}{key: value}).Find(&items)
 
 	if result.Error != nil {
