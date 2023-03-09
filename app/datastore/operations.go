@@ -113,3 +113,23 @@ func UserAuth(name string, password string) (User, bool) {
 	}
 	return user, true
 }
+
+func UpdateCardOnId(changedCard Card) (Card, bool) {
+	var card Card
+
+	card, found := GetOneBy[Card]("id", changedCard.Id)
+	if !found {
+		return card, false
+	}
+
+	result := Datastore.Model(&card).Updates(changedCard)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "UpdateCardOnId")
+		}
+		return card, false
+
+	}
+
+	return card, true
+}
