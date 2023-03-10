@@ -183,3 +183,14 @@ func DeleteCardsById(id uuid.UUID) bool {
 	}
 	return state
 }
+
+func AdminCheck() bool {
+	var empty bool
+	var admins Admin
+
+	result := Datastore.Find(&admins)
+	if r := result.RowsAffected; r == 0 {
+		empty = true
+	}
+	return empty
+}
