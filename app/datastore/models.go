@@ -27,6 +27,7 @@ type (
 	User struct {
 		ID            uuid.UUID `json:"id" gorm:"type:uuid"`
 		Company_Name  string    `json:"company_name" gorm:"type:string"`
+		Image         string    `json:"image" gorm:"type:string"`
 		Password      string    `json:"password" gorm:"type:string"`
 		Mail          string    `json:"mail" gorm:"type:string"`
 		LinkToCompany string    `json:"linkToCompany" gorm:"type:string"`
