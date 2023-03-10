@@ -226,3 +226,17 @@ func GetCardById(id string) (Card, bool) {
 
 	return card, state
 }
+
+func AdminAuth(username string, password string) (Admin, bool) {
+	var admin Admin
+
+	result := Datastore.Where("user_name = ?", username).Find(&admin)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "AdminAuth")
+		}
+		return admin, false
+
+	}
+	return admin, true
+}
