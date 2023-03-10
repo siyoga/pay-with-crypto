@@ -134,7 +134,7 @@ func UpdateCardOnId(changedCard Card) (Card, bool) {
 	return card, true
 }
 
-func GetAllCards[T All](key string, value interface{}) ([]T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
+func GetManyBy[T All](key string, value interface{}) ([]T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
 	var items []T
 
 	result := Datastore.Where(map[string]interface{}{key: value}).Find(&items)
