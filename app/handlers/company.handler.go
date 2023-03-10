@@ -16,7 +16,7 @@ func CompanyGetByIdHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	company, state = db.GetOneBy[db.User]("id", company.ID)
+	company, state = db.GetOneBy[db.User]("id", companyId)
 
 	if !state {
 		return fiber.ErrNotFound
