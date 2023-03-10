@@ -46,19 +46,20 @@ type (
 	}
 
 	Admin struct {
-		ID        uuid.UUID `json:"id" gorm:"type:uuid"`
-		UserName  string    `json:"username" gorm:"type:string"`
-		FirstName string    `json:"first_name" gorm:"type:string"`
-		LastName  string    `json:"last_name" gorm:"type:string"`
-		Password  string    `json:"password" gorm:"type:string"`
-		CreatedAt time.Time //add ``
-		UpdatedAt time.Time //add ``
+		ID          uuid.UUID `json:"id" gorm:"type:uuid"`
+		UserName    string    `json:"username" gorm:"type:string"`
+		FirstName   string    `json:"first_name" gorm:"type:string"`
+		LastName    string    `json:"last_name" gorm:"type:string"`
+		Password    string    `json:"password" gorm:"type:string"`
+		CreatedTags []Tag     `json:"created_tags" gorm:"foreignKey:AdminID"`
+		CreatedAt   time.Time //add ``
+		UpdatedAt   time.Time //add ``
 	}
 
 	Tag struct {
 		ID      uuid.UUID `json:"id" gorm:"type:uuid"`
-		Name    string    `json:"tagname" gorm:"type:string"`
-		AdminID uuid.UUID //add ''
+		Name    string    `json:"name" gorm:"type:string"`
+		AdminID uuid.UUID `json:"admin_id" gorm:"type:uuid"`
 	}
 
 	RefreshToken struct {

@@ -49,7 +49,6 @@ func TagCreateHandler(c *fiber.Ctx) error {
 	}
 
 	newTag.ID = uuid.Must(uuid.NewV4())
-
 	newTag.AdminID = admin.ID
 
 	if ok := db.Add(newTag); !ok {
