@@ -34,6 +34,31 @@ func AdminRegisterHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(admin)
 }
 
+func GetCardsForApprove(c *fiber.Ctx) error {
+	cards, _ := db.GetManyBy[db.Card]("approved", false)
+
+	return c.Status(200).JSON(cards)
+}
+
+func TagCreateHandler(c *fiber.Ctx) error {
+	var newTag db.Tag
+	admin := c.Locals("admin").(db.Admin)
+
+	if err := c.BodyParser(&newTag); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	newTag.ID = uuid.Must(uuid.NewV4())
+
+	newTag.AdminID = admin.ID
+
+	if ok := db.Add(newTag); !ok {
+		return fiber.ErrInternalServerError
+	}
+
+	return c.Status(201).JSON(newTag)
+}
+
 func CreateFirstAdmin() {
 	var firstAdmin db.Admin
 
