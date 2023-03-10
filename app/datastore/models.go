@@ -30,7 +30,7 @@ type (
 		Password      string    `json:"password" gorm:"type:string"`
 		Mail          string    `json:"mail" gorm:"type:string"`
 		LinkToCompany string    `json:"linkToCompany" gorm:"type:string"`
-		Cards         []Card    `json:"cards" gorm:"foreignKey:ID"`
+		Cards         []Card    `json:"cards"`
 	}
 
 	Card struct {

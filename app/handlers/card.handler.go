@@ -109,7 +109,7 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	newCard.Id = uuid.Must(uuid.NewV4()) // TODO: set userId from locals
+	newCard.Id = uuid.Must(uuid.NewV4())
 
 	newCard.UserID = user.ID
 
