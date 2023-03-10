@@ -100,6 +100,21 @@ func UserAuth(name string, password string) (User, bool) {
 	return user, true
 }
 
+// Эту функцию не меняй на дженерик
+func GetUserById(userId string) (User, bool) {
+	var user User
+
+	result := Datastore.Model(User{}).Where(map[string]interface{}{"id": userId}).Preload("Cards").First(&user)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "UserAuth")
+		}
+		return user, false
+
+	}
+	return user, true
+}
+
 func UpdateCardOnId(changedCard Card) (Card, bool) {
 	var card Card
 
