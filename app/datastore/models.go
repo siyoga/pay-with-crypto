@@ -21,7 +21,7 @@ type (
 	}
 
 	All interface {
-		User | RefreshToken | Card | Admin
+		User | RefreshToken | Card | Admin | Tag
 	}
 
 	User struct {
@@ -41,6 +41,7 @@ type (
 		LinkToProd  string         `json:"linkToProd" gorm:"type:string"`
 		Price       string         `json:"price" gorm:"type:string"`
 		Description string         `json:"description" gorm:"type:string"`
+		Approved    bool           `json:"approved" gorm:"type:bool"`
 		Tags        pq.StringArray `json:"tags" gorm:"type:text[]"`
 	}
 
@@ -52,6 +53,12 @@ type (
 		Password  string    `json:"password" gorm:"type:string"`
 		CreatedAt time.Time //add ``
 		UpdatedAt time.Time //add ``
+	}
+
+	Tag struct {
+		ID      uuid.UUID `json:"id" gorm:"type:uuid"`
+		Name    string    `json:"tagname" gorm:"type:string"`
+		AdminID uuid.UUID //add ''
 	}
 
 	RefreshToken struct {

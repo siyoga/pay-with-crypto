@@ -7,6 +7,8 @@ import (
 	"pay-with-crypto/app"
 	db "pay-with-crypto/app/datastore"
 
+	hand "pay-with-crypto/app/handlers"
+
 	"github.com/joho/godotenv"
 )
 
@@ -32,6 +34,8 @@ func main() {
 	}
 
 	server := app.Start(config)
+
+	hand.CreateFirstAdmin()
 
 	if err := server.Listen(":8081"); err != nil {
 		log.Panic(err)

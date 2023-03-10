@@ -135,6 +135,22 @@ func UpdateCardOnId(changedCard Card) (Card, bool) {
 	return card, true
 }
 
+func GetManyBy[T All](key string, value interface{}) ([]T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
+	var items []T
+
+	result := Datastore.Where(map[string]interface{}{key: value}).Find(&items)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			util.Error(result.Error, "GetAllCards")
+		}
+
+		return items, false
+	}
+
+	return items, true  
+}
+
 func IsCardValidToLoginedUser(cardId uuid.UUID, loginedUserId uuid.UUID) bool {
 	var state bool
 	var card Card
@@ -182,4 +198,15 @@ func ShowCompanyById(userId uuid.UUID) (User, bool) {
 	}
 
 	return user, state
+}
+
+func AdminCheck() bool {
+	var empty bool
+	var admins Admin
+
+	result := Datastore.Find(&admins)
+	if r := result.RowsAffected; r == 0 {
+		empty = true
+	}
+	return empty
 }
