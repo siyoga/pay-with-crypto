@@ -103,7 +103,7 @@ func UserAuth(name string, password string) (User, bool) {
 func UpdateCardOnId(changedCard Card) (Card, bool) {
 	var card Card
 
-	card, found := GetOneBy[Card]("id", changedCard.Id)
+	card, found := GetOneBy[Card]("id", changedCard.ID)
 	if !found {
 		return card, false
 	}

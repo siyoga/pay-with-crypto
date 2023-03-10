@@ -109,7 +109,7 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	newCard.Id = uuid.Must(uuid.NewV4())
+	newCard.ID = uuid.Must(uuid.NewV4())
 
 	newCard.UserID = user.ID
 
@@ -129,11 +129,11 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	if !db.IsCardValidToLoginedUser(card.Id, loginedUser) {
+	if !db.IsCardValidToLoginedUser(card.ID, loginedUser) {
 		return fiber.ErrForbidden
 	}
 
-	if state = db.DeleteCardsById(card.Id); !state {
+	if state = db.DeleteCardsById(card.ID); !state {
 		return fiber.ErrNotFound
 	}
 
@@ -148,7 +148,7 @@ func CardEditHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	if !db.IsCardValidToLoginedUser(changedCard.Id, loginedUser) {
+	if !db.IsCardValidToLoginedUser(changedCard.ID, loginedUser) {
 		return fiber.ErrForbidden
 	}
 
