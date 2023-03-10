@@ -20,4 +20,5 @@ func CardController(a *fiber.App) {
 	route.Delete("/delete", middleware.Auth, handlers.CardDeleteHandler)
 	route.Put("/edit", middleware.Auth, handlers.CardEditHandler)
 	route.Get("/show/userid", handlers.CompanyShowByIdHandler)
+	route.Get("/show", handlers.CardGetByIdHandler)
 }

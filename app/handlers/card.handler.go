@@ -198,3 +198,22 @@ func TagCreateHandler(c *fiber.Ctx) error {
 
 	return c.Status(201).JSON(newTag)
 }
+
+func CardGetByIdHandler(c *fiber.Ctx) error {
+	var card db.Card
+	var state bool
+
+	cardId := c.Query("id")
+
+	if cardId == "" {
+		return fiber.ErrBadRequest
+	}
+
+	card, state = db.GetCardById(cardId)
+
+	if !state {
+		return fiber.ErrNotFound
+	}
+
+	return c.Status(fiber.StatusOK).JSON(card)
+}
