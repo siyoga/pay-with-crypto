@@ -19,4 +19,5 @@ func CardController(a *fiber.App) {
 	route.Post("/createTag", handlers.TagCreateHandler) //TODO!: add middleware.AuthAdmin
 	route.Delete("/delete", middleware.Auth, handlers.CardDeleteHandler)
 	route.Put("/edit", middleware.Auth, handlers.CardEditHandler)
+	route.Get("/show/userid", handlers.CompanyShowByIdHandler)
 }

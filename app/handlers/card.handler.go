@@ -157,6 +157,23 @@ func CardEditHandler(c *fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"message": "Card successfully edited"})
 }
 
+func CompanyShowByIdHandler(c *fiber.Ctx) error {
+	var user db.User
+	var state bool
+
+	if err := c.BodyParser(&user); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	user, state = db.ShowCompanyById(user.ID)
+
+	if !state {
+		return fiber.ErrNotFound
+	}
+
+	return c.Status(fiber.StatusOK).JSON(user)
+}
+
 func GetCardsForApprove(c *fiber.Ctx) error {
 	cards, _ := db.GetManyBy[db.Card]("approved", false)
 

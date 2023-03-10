@@ -184,6 +184,22 @@ func DeleteCardsById(id uuid.UUID) bool {
 	return state
 }
 
+func ShowCompanyById(userId uuid.UUID) (User, bool) {
+	var state = true
+	var user User
+
+	result := Datastore.Select("id", "company_name", "mail", "link_to_company").Where("id = ?", userId).Find(&user)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "ShowCompanyById")
+		}
+
+		state = false
+	}
+
+	return user, state
+}
+
 func AdminCheck() bool {
 	var empty bool
 	var admins Admin
