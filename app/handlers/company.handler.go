@@ -6,11 +6,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func CompanyShowByIdHandler(c *fiber.Ctx) error {
+func CompanyGetByIdHandler(c *fiber.Ctx) error {
 	var company db.User
 	var state bool
 
-	if err := c.BodyParser(&company); err != nil {
+	companyId := c.Query("id")
+
+	if companyId == "" {
 		return fiber.ErrBadRequest
 	}
 

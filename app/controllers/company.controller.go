@@ -9,5 +9,5 @@ import (
 func CompanyController(a *fiber.App) {
 	route := a.Group("/company")
 
-	route.Get("/search/userid", handlers.CompanyShowByIdHandler)
+	route.Get("/search/userid", handlers.CompanyGetByIdHandler)
 }
