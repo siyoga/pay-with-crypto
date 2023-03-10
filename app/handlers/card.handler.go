@@ -44,7 +44,7 @@ func CardsSearcherByTagsHandler(c *fiber.Ctx) error {
 }
 
 func CardsSearcherByIdHandler(c *fiber.Ctx) error {
-	var result []db.Card
+	var result db.Card
 	var state bool
 
 	id := c.Query("id")
@@ -54,7 +54,7 @@ func CardsSearcherByIdHandler(c *fiber.Ctx) error {
 	}
 
 	if id != "" {
-		result, state = db.SearchCardsById(id)
+		result, state = db.GetOneBy[db.Card]("id", id)
 	}
 
 	if !state {
