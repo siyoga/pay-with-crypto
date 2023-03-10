@@ -17,4 +17,5 @@ func CardController(a *fiber.App) {
 	route.Post("/create", middleware.Auth, handlers.CardCreatorHandler)
 	route.Delete("/delete", middleware.Auth, handlers.CardDeleteHandler)
 	route.Put("/edit", middleware.Auth, handlers.CardEditHandler)
+	route.Get("/show/userid", handlers.CompanyShowByIdHandler)
 }
