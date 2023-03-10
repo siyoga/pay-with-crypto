@@ -5,6 +5,7 @@ import (
 	util "pay-with-crypto/app/utility"
 	"strings"
 
+	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -28,6 +29,22 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
 			util.Error(result.Error, "GetOneBy")
+		}
+
+		return i, false
+	}
+
+	return i, true
+}
+
+func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newValue string) (T, bool) {
+	var i T
+
+	result := Datastore.Model(&i).Where(map[string]interface{}{key: value}).Update(updatedKey, newValue)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
+			util.Error(result.Error, "UpdateOneBy")
 		}
 
 		return i, false
@@ -84,22 +101,6 @@ func SearchCardsById(id string) ([]Card, bool) {
 	return cards, true
 }
 
-func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newValue string) (T, bool) {
-	var i T
-
-	result := Datastore.Model(&i).Where(map[string]interface{}{key: value}).Update(updatedKey, newValue)
-
-	if result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
-			util.Error(result.Error, "UpdateOneBy")
-		}
-
-		return i, false
-	}
-
-	return i, true
-}
-
 func UserAuth(name string, password string) (User, bool) {
 	var user User
 
@@ -147,5 +148,38 @@ func GetManyBy[T All](key string, value interface{}) ([]T, bool) { // used in ha
 		return items, false
 	}
 
-	return items, true
+	return items, true  
+}
+
+func IsCardValidToLoginedUser(cardId uuid.UUID, loginedUserId uuid.UUID) bool {
+	var state bool
+	var card Card
+
+	card, found := GetOneBy[Card]("id", cardId)
+	if !found {
+		state = false
+	}
+
+	if card.UserID == loginedUserId {
+		state = true
+	}
+
+	return state
+}
+
+func DeleteCardsById(id uuid.UUID) bool {
+	var state bool
+
+	_, found := GetOneBy[Card]("id", id)
+	if found {
+		result := Datastore.Delete(&Card{}, "id = ?", id)
+		if result.Error != nil {
+			if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+				util.Error(result.Error, "DeleteCardsById")
+			}
+			state = false
+		}
+		state = true
+	}
+	return state
 }

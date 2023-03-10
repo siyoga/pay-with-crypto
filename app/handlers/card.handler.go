@@ -120,11 +120,36 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 	return c.Status(201).JSON(newCard)
 }
 
+func CardDeleteHandler(c *fiber.Ctx) error {
+	var card db.Card
+	var state bool
+	loginedUser := c.Locals("user").(db.User).ID
+
+	if err := c.BodyParser(&card); err != nil {
+		return err
+	}
+
+	if !db.IsCardValidToLoginedUser(card.Id, loginedUser) {
+		return fiber.ErrForbidden
+	}
+
+	if state = db.DeleteCardsById(card.Id); !state {
+		return fiber.ErrNotFound
+	}
+
+	return c.Status(fiber.StatusOK).JSON(state)
+}
+
 func CardEditHandler(c *fiber.Ctx) error {
 	var changedCard db.Card
+	loginedUser := c.Locals("user").(db.User).ID
 
 	if err := c.BodyParser(&changedCard); err != nil {
 		return fiber.ErrBadRequest
+	}
+
+	if !db.IsCardValidToLoginedUser(changedCard.Id, loginedUser) {
+		return fiber.ErrForbidden
 	}
 
 	db.UpdateCardOnId(changedCard)
@@ -136,4 +161,23 @@ func GetCardsForApprove(c *fiber.Ctx) error {
 	cards, _ := db.GetManyBy[db.Card]("approved", false)
 
 	return c.Status(200).JSON(cards)
+}
+
+func TagCreateHandler(c *fiber.Ctx) error {
+	var newTag db.Tag
+	admin := c.Locals("admin").(db.Admin)
+
+	if err := c.BodyParser(&newTag); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	newTag.ID = uuid.Must(uuid.NewV4())
+
+	newTag.AdminID = admin.ID
+
+	if ok := db.Add(newTag); !ok {
+		return fiber.ErrInternalServerError
+	}
+
+	return c.Status(201).JSON(newTag)
 }

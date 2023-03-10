@@ -16,6 +16,7 @@ func CardController(a *fiber.App) {
 	route.Get("/getForApprove", handlers.GetCardsForApprove) //TODO!: add middleware.AuthAdmin
 	route.Post("/uploadLogo", middleware.Auth, handlers.CardLogoUploaderHandler)
 	route.Post("/create", middleware.Auth, handlers.CardCreatorHandler)
+	route.Post("/createTag", handlers.TagCreateHandler) //TODO!: add middleware.AuthAdmin
+	route.Delete("/delete", middleware.Auth, handlers.CardDeleteHandler)
 	route.Put("/edit", middleware.Auth, handlers.CardEditHandler)
-
 }
