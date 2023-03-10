@@ -156,3 +156,20 @@ func CardEditHandler(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(fiber.Map{"message": "Card successfully edited"})
 }
+
+func CardShowByIdHandler(c *fiber.Ctx) error {
+	var card db.Card
+	var state bool
+
+	if err := c.BodyParser(&card); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	card, state = db.ShowCardById(card.Id)
+
+	if !state {
+		return fiber.ErrNotFound
+	}
+
+	return c.Status(fiber.StatusOK).JSON(card)
+}

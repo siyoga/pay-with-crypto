@@ -167,3 +167,19 @@ func DeleteCardsById(id uuid.UUID) bool {
 	}
 	return state
 }
+
+func ShowCardById(cardId uuid.UUID) (Card, bool) {
+	var state = true
+	var card Card
+
+	result := Datastore.Where("id = ?", cardId).Find(&card)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "ShowCardById")
+		}
+
+		state = false
+	}
+
+	return card, state
+}
