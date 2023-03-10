@@ -41,6 +41,7 @@ type (
 		LinkToProd  string         `json:"linkToProd" gorm:"type:string"`
 		Price       string         `json:"price" gorm:"type:string"`
 		Description string         `json:"description" gorm:"type:string"`
+		Approved    bool           `json:"approved" gorm:"type:bool"`
 		Tags        pq.StringArray `json:"tags" gorm:"type:text[]"`
 	}
 

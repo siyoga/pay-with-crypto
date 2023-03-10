@@ -157,6 +157,12 @@ func CardEditHandler(c *fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"message": "Card successfully edited"})
 }
 
+func GetCardsForApprove(c *fiber.Ctx) error {
+	cards, _ := db.GetManyBy[db.Card]("approved", false)
+
+	return c.Status(200).JSON(cards)
+}
+
 func TagCreateHandler(c *fiber.Ctx) error {
 	var newTag db.Tag
 	admin := c.Locals("admin").(db.Admin)
