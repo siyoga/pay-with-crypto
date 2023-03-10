@@ -211,6 +211,22 @@ func AdminCheck() bool {
 	return empty
 }
 
+func GetCardById(id string) (Card, bool) {
+	var state = true
+	var card Card
+
+	result := Datastore.Where("id = ?", id).Find(&card)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "GetCardById")
+		}
+
+		state = false
+	}
+
+	return card, state
+}
+
 func AdminAuth(username string, password string) (Admin, bool) {
 	var admin Admin
 
