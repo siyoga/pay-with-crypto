@@ -148,7 +148,7 @@ func GetManyBy[T All](key string, value interface{}) ([]T, bool) { // used in ha
 		return items, false
 	}
 
-	return items, true  
+	return items, true
 }
 
 func IsCardValidToLoginedUser(cardId uuid.UUID, loginedUserId uuid.UUID) bool {
@@ -209,4 +209,18 @@ func AdminCheck() bool {
 		empty = true
 	}
 	return empty
+}
+
+func AdminAuth(username string, password string) (Admin, bool) {
+	var admin Admin
+
+	result := Datastore.Where("user_name = ?", username).Find(&admin)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "AdminAuth")
+		}
+		return admin, false
+
+	}
+	return admin, true
 }

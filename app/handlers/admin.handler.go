@@ -3,9 +3,11 @@ package handlers
 import (
 	"os"
 	db "pay-with-crypto/app/datastore"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
+	"github.com/golang-jwt/jwt"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -46,4 +48,43 @@ func CreateFirstAdmin() {
 	if empty := db.AdminCheck(); empty {
 		db.Add(firstAdmin)
 	}
+}
+
+func AdminLoginHandler(c *fiber.Ctx) error {
+	var requsetData db.Admin
+	var refreshToken db.RefreshToken
+
+	if err := c.BodyParser(&requsetData); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	admin, state := db.AdminAuth(requsetData.UserName, requsetData.Password)
+	if !state {
+		return fiber.ErrBadRequest
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(requsetData.Password)); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	payload := jwt.MapClaims{
+		"sub":       admin.ID,
+		"generated": time.Now().Add(15 * 24 * time.Hour),
+	}
+
+	response, errs := generatTokenResponse(payload)
+	if errs[0] != nil {
+		return fiber.ErrInternalServerError
+	}
+	if errs[1] != nil {
+		return fiber.ErrInternalServerError
+	}
+
+	refreshToken.Token = response.RefreshToken
+
+	if ok := db.Add(refreshToken); !ok {
+		return fiber.ErrBadRequest
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
 }
