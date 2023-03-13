@@ -66,4 +66,11 @@ type (
 	RefreshToken struct {
 		Token string `json:"token" gorm:"string"`
 	}
+
+	GoogleResponse struct {
+		ID       string `json:"id"`
+		Email    string `json:"email"`
+		Verified bool   `json:"verified_email"`
+		Picture  string `json:"picture"`
+	}
 )

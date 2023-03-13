@@ -8,10 +8,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
+	"honnef.co/go/tools/config"
 
 	"net/mail"
 
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 func RegisterHandler(c *fiber.Ctx) error {
@@ -96,4 +99,17 @@ func generatTokenResponse(payload jwt.MapClaims) (utility.JWTTokenPair, []error)
 
 	return response, errors
 
+}
+
+func AuthGoogle(c *fiber.Ctx) error {
+	path := &oauth2.Config{
+		ClientID:     config.Config("GOOGLE_CLIENT"),
+		ClientSecret: config.Config("GOOGLE_SECRET"),
+		RedirectURL:  config.Config("GOOGLE_REDIRECT_URL"),
+		Scopes: []string{
+			"https://www.googleapis.com/auth/userinfo.email"}, // you can use other scopes to get more data
+		Endpoint: google.Endpoint,
+	}
+	url := path.AuthCodeURL("state")
+	return c.Redirect(url)
 }
