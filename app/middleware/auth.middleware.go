@@ -20,7 +20,7 @@ func Auth(c *fiber.Ctx) error {
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		return []byte(hmacSampleSecret), nil
@@ -37,12 +37,12 @@ func Auth(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Missing or malformed JWT", "data": nil})
 	}
 
-	result, ok := db.GetOneBy[db.User]("id", userid)
-	if ok == false {
+	result, ok := db.GetOneBy[db.Company]("id", userid)
+	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Not found user"})
 	}
 
-	c.Locals("user", result)
+	c.Locals("company", result)
 	return c.Next()
 }
 
@@ -58,7 +58,7 @@ func AuthAdmin(c *fiber.Ctx) error {
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		return []byte(hmacSampleSecret), nil
@@ -76,7 +76,7 @@ func AuthAdmin(c *fiber.Ctx) error {
 	}
 
 	result, ok := db.GetOneBy[db.Admin]("id", userid)
-	if ok == false {
+	if !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Not found user"})
 	}
 

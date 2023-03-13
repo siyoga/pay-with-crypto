@@ -103,7 +103,7 @@ func CardLogoUploaderHandler(c *fiber.Ctx) error {
 
 func CardCreatorHandler(c *fiber.Ctx) error {
 	var newCard db.Card
-	user := c.Locals("user").(db.User)
+	company := c.Locals("company").(db.Company)
 
 	if err := c.BodyParser(&newCard); err != nil {
 		return fiber.ErrBadRequest
@@ -111,7 +111,7 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 
 	newCard.ID = uuid.Must(uuid.NewV4())
 
-	newCard.UserID = user.ID
+	newCard.CompanyID = company.ID
 
 	if ok := db.Add(newCard); !ok {
 		return fiber.ErrInternalServerError
@@ -123,17 +123,21 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 func CardDeleteHandler(c *fiber.Ctx) error {
 	var card db.Card
 	var state bool
-	loginedUser := c.Locals("user").(db.User).ID
+	loginedUser := c.Locals("company").(db.Company).ID
 
 	if err := c.BodyParser(&card); err != nil {
 		return err
 	}
 
-	if !db.IsCardValidToLoginedUser(card.ID, loginedUser) {
+	if card, state = db.GetOneBy[db.Card]("id", card.ID); !state {
+		return fiber.ErrBadRequest
+	}
+
+	if !db.IsValid(card.CompanyID, loginedUser) {
 		return fiber.ErrForbidden
 	}
 
-	if state = db.DeleteCardsById(card.ID); !state {
+	if state = db.DeleteBy[db.Card]("id", card.ID); !state {
 		return fiber.ErrNotFound
 	}
 
@@ -142,17 +146,25 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 
 func CardEditHandler(c *fiber.Ctx) error {
 	var changedCard db.Card
-	loginedUser := c.Locals("user").(db.User).ID
+	var state bool
+	loginedCompany := c.Locals("company").(db.Company).ID
 
 	if err := c.BodyParser(&changedCard); err != nil {
 		return fiber.ErrBadRequest
 	}
 
-	if !db.IsCardValidToLoginedUser(changedCard.ID, loginedUser) {
-		return fiber.ErrForbidden
+	if changedCard, state = db.GetOneBy[db.Card]("id", changedCard.ID); !state {
+		return fiber.ErrBadRequest
 	}
 
-	db.UpdateCardOnId(changedCard)
+	if !db.IsValid(changedCard.CompanyID, loginedCompany) {
+
+		return c.Status(200).JSON(changedCard.CompanyID)
+	}
+
+	if !db.WholeOneUpdate(changedCard) {
+		return fiber.ErrInternalServerError
+	}
 
 	return c.Status(200).JSON(fiber.Map{"message": "Card successfully edited"})
 }
@@ -167,7 +179,7 @@ func CardGetByIdHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	card, state = db.GetCardById(cardId)
+	card, state = db.GetOneBy[db.Card]("id", cardId)
 
 	if !state {
 		return fiber.ErrNotFound

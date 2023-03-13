@@ -5,7 +5,6 @@ import (
 	util "pay-with-crypto/app/utility"
 	"strings"
 
-	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -37,6 +36,22 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 	return i, true
 }
 
+func GetManyBy[T All](key string, value interface{}) ([]T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
+	var items []T
+
+	result := Datastore.Where(map[string]interface{}{key: value}).Find(&items)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			util.Error(result.Error, "GetAllCards")
+		}
+
+		return items, false
+	}
+
+	return items, true
+}
+
 func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newValue string) (T, bool) {
 	var i T
 
@@ -53,10 +68,56 @@ func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newVal
 	return i, true
 }
 
+func WholeOneUpdate[T All](item T) bool {
+
+	result := Datastore.Model(&item).Updates(item)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "WholeOneUpdate")
+		}
+		return false
+
+	}
+
+	return true
+}
+
+func DeleteBy[T All](key string, value any) bool {
+	var item T
+	var state bool
+
+	_, found := GetOneBy[T](key, value)
+	if found {
+		result := Datastore.Model(&item).Where(map[string]interface{}{key: value}).Delete(&item)
+		if result.Error != nil {
+			if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+				util.Error(result.Error, "DeleteBy")
+			}
+			state = false
+		}
+		state = true
+	}
+	return state
+}
+
+func Auth[T Authable](username string) (T, bool) {
+	var item T
+
+	result := Datastore.Where("name = ?", username).Find(&item)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "Auth")
+		}
+		return item, false
+
+	}
+	return item, true
+}
+
 func SearchCardByName(value string) ([]Card, bool) {
 	var cards []Card
 
-	result := Datastore.Where("Name LIKE ?", "%"+value+"%").Find(&cards)
+	result := Datastore.Where("name LIKE ?", "%"+value+"%").Find(&cards)
 
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
@@ -86,28 +147,14 @@ func SearchCardsByTags(rawTags string) ([]Card, bool) {
 	return cards, true
 }
 
-func UserAuth(name string, password string) (User, bool) {
-	var user User
-
-	result := Datastore.Where("Company_Name = ?", name).Find(&user)
-	if result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "UserAuth")
-		}
-		return user, false
-
-	}
-	return user, true
-}
-
 // Эту функцию не меняй на дженерик
-func GetUserById(userId string) (User, bool) {
-	var user User
+func GetUserById(userId string) (Company, bool) {
+	var user Company
 
-	result := Datastore.Model(User{}).Where(map[string]interface{}{"id": userId}).Preload("Cards").First(&user)
+	result := Datastore.Model(Company{}).Where(map[string]interface{}{"id": userId}).Preload("Cards").First(&user)
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "UserAuth")
+			util.Error(result.Error, "GetUserById")
 		}
 		return user, false
 
@@ -115,89 +162,9 @@ func GetUserById(userId string) (User, bool) {
 	return user, true
 }
 
-func UpdateCardOnId(changedCard Card) (Card, bool) {
-	var card Card
+func IsValid[T comparable](firstItem T, secondItem T) bool {
 
-	card, found := GetOneBy[Card]("id", changedCard.ID)
-	if !found {
-		return card, false
-	}
-
-	result := Datastore.Model(&card).Updates(changedCard)
-	if result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "UpdateCardOnId")
-		}
-		return card, false
-
-	}
-
-	return card, true
-}
-
-func GetManyBy[T All](key string, value interface{}) ([]T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
-	var items []T
-
-	result := Datastore.Where(map[string]interface{}{key: value}).Find(&items)
-
-	if result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			util.Error(result.Error, "GetAllCards")
-		}
-
-		return items, false
-	}
-
-	return items, true
-}
-
-func IsCardValidToLoginedUser(cardId uuid.UUID, loginedUserId uuid.UUID) bool {
-	var state bool
-	var card Card
-
-	card, found := GetOneBy[Card]("id", cardId)
-	if !found {
-		state = false
-	}
-
-	if card.UserID == loginedUserId {
-		state = true
-	}
-
-	return state
-}
-
-func DeleteCardsById(id uuid.UUID) bool {
-	var state bool
-
-	_, found := GetOneBy[Card]("id", id)
-	if found {
-		result := Datastore.Delete(&Card{}, "id = ?", id)
-		if result.Error != nil {
-			if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-				util.Error(result.Error, "DeleteCardsById")
-			}
-			state = false
-		}
-		state = true
-	}
-	return state
-}
-
-func ShowCompanyById(userId uuid.UUID) (User, bool) {
-	var state = true
-	var user User
-
-	result := Datastore.Select("id", "company_name", "mail", "link_to_company").Where("id = ?", userId).Find(&user)
-	if result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "ShowCompanyById")
-		}
-
-		state = false
-	}
-
-	return user, state
+	return firstItem == secondItem
 }
 
 func AdminCheck() bool {
@@ -209,34 +176,4 @@ func AdminCheck() bool {
 		empty = true
 	}
 	return empty
-}
-
-func GetCardById(id string) (Card, bool) {
-	var state = true
-	var card Card
-
-	result := Datastore.Where("id = ?", id).Find(&card)
-	if result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "GetCardById")
-		}
-
-		state = false
-	}
-
-	return card, state
-}
-
-func AdminAuth(username string, password string) (Admin, bool) {
-	var admin Admin
-
-	result := Datastore.Where("user_name = ?", username).Find(&admin)
-	if result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "AdminAuth")
-		}
-		return admin, false
-
-	}
-	return admin, true
 }

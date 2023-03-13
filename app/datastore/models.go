@@ -21,22 +21,26 @@ type (
 	}
 
 	All interface {
-		User | RefreshToken | Card | Admin | Tag
+		Company | RefreshToken | Card | Admin | Tag
 	}
 
-	User struct {
+	Authable interface {
+		Company | Admin
+	}
+
+	Company struct {
 		ID            uuid.UUID `json:"id" gorm:"type:uuid"`
-		Company_Name  string    `json:"company_name" gorm:"type:string"`
+		Name          string    `json:"name" gorm:"type:string"`
 		Image         string    `json:"image" gorm:"type:string"`
 		Password      string    `json:"password" gorm:"type:string"`
 		Mail          string    `json:"mail" gorm:"type:string"`
 		LinkToCompany string    `json:"linkToCompany" gorm:"type:string"`
-		Cards         []Card    `json:"cards" gorm:"foreignKey:UserID"`
+		Cards         []Card    `json:"cards" gorm:"foreignKey:CompanyID"`
 	}
 
 	Card struct {
 		ID          uuid.UUID      `json:"id" gorm:"type:uuid"`
-		UserID      uuid.UUID      `json:"user_id" gorm:"type:uuid"`
+		CompanyID   uuid.UUID      `json:"company_id" gorm:"type:uuid"`
 		Name        string         `json:"name" gorm:"type:string"`
 		Image       string         `json:"image" gorm:"type:string"`
 		LinkToProd  string         `json:"linkToProd" gorm:"type:string"`
@@ -48,7 +52,7 @@ type (
 
 	Admin struct {
 		ID          uuid.UUID `json:"id" gorm:"type:uuid"`
-		UserName    string    `json:"username" gorm:"type:string"`
+		Name        string    `json:"name" gorm:"type:string"`
 		FirstName   string    `json:"first_name" gorm:"type:string"`
 		LastName    string    `json:"last_name" gorm:"type:string"`
 		Password    string    `json:"password" gorm:"type:string"`
