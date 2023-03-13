@@ -130,9 +130,11 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 	}
 
 	if _, found := db.GetOneBy[db.Card]("id", card.ID); found {
-		if !db.IsValid(card.ID, loginedUser) {
-			return fiber.ErrForbidden
-		}
+		return fiber.ErrNotFound
+	}
+
+	if !db.IsValid(card.ID, loginedUser) {
+		return fiber.ErrForbidden
 	}
 
 	if state = db.DeleteBy[db.Card]("id", card.ID); !state {
