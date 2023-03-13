@@ -9,7 +9,7 @@ import (
 )
 
 func CompanyGetByIdHandler(c *fiber.Ctx) error {
-	var company db.User
+	var company db.Company
 	var state bool
 
 	companyId := c.Query("id")
@@ -30,7 +30,7 @@ func CompanyGetByIdHandler(c *fiber.Ctx) error {
 func CompanyLogoUploaderHandler(c *fiber.Ctx) error {
 	logoBucket := os.Getenv("S3_BUCKET_COMPANY_LOGOS")
 	companyLogo, err := c.FormFile("companyLogo")
-	user := c.Locals("user").(db.User)
+	user := c.Locals("user").(db.Company)
 
 	companyId := user.ID.String()
 
@@ -53,7 +53,7 @@ func CompanyLogoUploaderHandler(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	_, isUpdateOk := db.UpdateOneBy[db.User]("id", companyId, "image", *fileNameInS3)
+	_, isUpdateOk := db.UpdateOneBy[db.Company]("id", companyId, "image", *fileNameInS3)
 
 	if !isUpdateOk {
 		return fiber.ErrInternalServerError

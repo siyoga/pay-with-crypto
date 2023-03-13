@@ -62,7 +62,7 @@ func CreateFirstAdmin() {
 	var firstAdmin db.Admin
 
 	firstAdmin.ID = uuid.Must(uuid.NewV4())
-	firstAdmin.Login = os.Getenv("ADMIN_USERNAME")
+	firstAdmin.Name = os.Getenv("ADMIN_USERNAME")
 	firstAdmin.FirstName = os.Getenv("ADMIN_FIRSTNAME")
 	firstAdmin.LastName = os.Getenv("ADMIN_LASTNAME")
 	firstAdmin.Password = os.Getenv("ADMIN_PASSWORD")
@@ -82,7 +82,7 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	admin, state := db.Auth[db.Admin](requsetData.Login)
+	admin, state := db.Auth[db.Admin](requsetData.Name)
 	if !state {
 		return fiber.ErrBadRequest
 	}

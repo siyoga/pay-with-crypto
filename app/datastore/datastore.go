@@ -21,7 +21,7 @@ func New(parameters string) {
 		logrus.Error("Error in New.", err)
 	}
 
-	db.AutoMigrate(&User{}, &Card{}, &RefreshToken{}, &Admin{}, &Tag{})
+	db.AutoMigrate(&Company{}, &Card{}, &RefreshToken{}, &Admin{}, &Tag{})
 
 	Datastore = &DatastoreT{db}
 }

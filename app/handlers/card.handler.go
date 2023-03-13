@@ -103,7 +103,7 @@ func CardLogoUploaderHandler(c *fiber.Ctx) error {
 
 func CardCreatorHandler(c *fiber.Ctx) error {
 	var newCard db.Card
-	user := c.Locals("user").(db.User)
+	user := c.Locals("user").(db.Company)
 
 	if err := c.BodyParser(&newCard); err != nil {
 		return fiber.ErrBadRequest
@@ -123,14 +123,16 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 func CardDeleteHandler(c *fiber.Ctx) error {
 	var card db.Card
 	var state bool
-	loginedUser := c.Locals("user").(db.User).ID
+	loginedUser := c.Locals("user").(db.Company).ID
 
 	if err := c.BodyParser(&card); err != nil {
 		return err
 	}
 
-	if !db.IsCardValidToLoginedUser(card.ID, loginedUser) {
-		return fiber.ErrForbidden
+	if _, found := db.GetOneBy[db.Card]("id", card.ID); found {
+		if !db.IsValid(card.ID, loginedUser) {
+			return fiber.ErrForbidden
+		}
 	}
 
 	if state = db.DeleteBy[db.Card]("id", card.ID); !state {
@@ -142,7 +144,7 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 
 func CardEditHandler(c *fiber.Ctx) error {
 	var changedCard db.Card
-	loginedUser := c.Locals("user").(db.User).ID
+	loginedUser := c.Locals("user").(db.Company).ID
 
 	if err := c.BodyParser(&changedCard); err != nil {
 		return fiber.ErrBadRequest
@@ -152,7 +154,7 @@ func CardEditHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	if !db.IsCardValidToLoginedUser(changedCard.ID, loginedUser) {
+	if !db.IsValid(changedCard.ID, loginedUser) {
 		return fiber.ErrForbidden
 	}
 

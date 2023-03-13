@@ -5,7 +5,6 @@ import (
 	util "pay-with-crypto/app/utility"
 	"strings"
 
-	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -101,7 +100,7 @@ func DeleteBy[T All](key string, value any) bool {
 	return state
 }
 
-func Auth[T Logineble](login string) (T, bool) {
+func Auth[T Authable](login string) (T, bool) {
 	var item T
 
 	result := Datastore.Where("login = ?", login).Find(&item)
@@ -149,10 +148,10 @@ func SearchCardsByTags(rawTags string) ([]Card, bool) {
 }
 
 // Эту функцию не меняй на дженерик
-func GetUserById(userId string) (User, bool) {
-	var user User
+func GetUserById(userId string) (Company, bool) {
+	var user Company
 
-	result := Datastore.Model(User{}).Where(map[string]interface{}{"id": userId}).Preload("Cards").First(&user)
+	result := Datastore.Model(Company{}).Where(map[string]interface{}{"id": userId}).Preload("Cards").First(&user)
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "GetUserById")
@@ -163,31 +162,9 @@ func GetUserById(userId string) (User, bool) {
 	return user, true
 }
 
-func IsCardValidToLoginedUser(cardId uuid.UUID, loginedUserId uuid.UUID) bool {
-	var card Card
+func IsValid[T comparable](firstItem T, secondItem T) bool {
 
-	card, found := GetOneBy[Card]("id", cardId)
-	if !found {
-		return false
-	}
-
-	return card.UserID == loginedUserId
-}
-
-func ShowCompanyById(userId uuid.UUID) (User, bool) {
-	var state = true
-	var user User
-
-	result := Datastore.Select("id", "login", "mail", "link_to_company").Where("id = ?", userId).Find(&user)
-	if result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "ShowCompanyById")
-		}
-
-		state = false
-	}
-
-	return user, state
+	return firstItem == secondItem
 }
 
 func AdminCheck() bool {

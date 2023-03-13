@@ -15,7 +15,7 @@ import (
 )
 
 func RegisterHandler(c *fiber.Ctx) error {
-	var user db.User
+	var user db.Company
 
 	if err := c.BodyParser(&user); err != nil {
 		return fiber.ErrBadRequest
@@ -42,14 +42,14 @@ func RegisterHandler(c *fiber.Ctx) error {
 }
 
 func LoginHandler(c *fiber.Ctx) error {
-	var requsetData db.User
+	var requsetData db.Company
 	var refreshToken db.RefreshToken
 
 	if err := c.BodyParser(&requsetData); err != nil {
 		return fiber.ErrBadRequest
 	}
 
-	user, state := db.Auth[db.User](requsetData.Login)
+	user, state := db.Auth[db.Company](requsetData.Name)
 	if !state {
 		return fiber.ErrBadRequest
 	}

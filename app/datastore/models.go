@@ -21,16 +21,16 @@ type (
 	}
 
 	All interface {
-		User | RefreshToken | Card | Admin | Tag
+		Company | RefreshToken | Card | Admin | Tag
 	}
 
-	Logineble interface {
-		User | Admin
+	Authable interface {
+		Company | Admin
 	}
 
-	User struct {
+	Company struct {
 		ID            uuid.UUID `json:"id" gorm:"type:uuid"`
-		Login         string    `json:"login" gorm:"type:string"`
+		Name          string    `json:"Name" gorm:"type:string"`
 		Image         string    `json:"image" gorm:"type:string"`
 		Password      string    `json:"password" gorm:"type:string"`
 		Mail          string    `json:"mail" gorm:"type:string"`
@@ -52,7 +52,7 @@ type (
 
 	Admin struct {
 		ID          uuid.UUID `json:"id" gorm:"type:uuid"`
-		Login       string    `json:"login" gorm:"type:string"`
+		Name        string    `json:"Name" gorm:"type:string"`
 		FirstName   string    `json:"first_name" gorm:"type:string"`
 		LastName    string    `json:"last_name" gorm:"type:string"`
 		Password    string    `json:"password" gorm:"type:string"`
