@@ -89,7 +89,7 @@ func DeleteBy[T All](key string, value any) bool {
 
 	_, found := GetOneBy[T](key, value)
 	if found {
-		result := Datastore.Model(&item).Delete(map[string]interface{}{key: value})
+		result := Datastore.Model(&item).Where(map[string]interface{}{key: value}).Delete(&item)
 		if result.Error != nil {
 			if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 				util.Error(result.Error, "DeleteBy")
