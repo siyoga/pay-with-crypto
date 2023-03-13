@@ -30,7 +30,7 @@ func CompanyGetByIdHandler(c *fiber.Ctx) error {
 func CompanyLogoUploaderHandler(c *fiber.Ctx) error {
 	logoBucket := os.Getenv("S3_BUCKET_COMPANY_LOGOS")
 	companyLogo, err := c.FormFile("companyLogo")
-	user := c.Locals("user").(db.Company)
+	user := c.Locals("company").(db.Company)
 
 	companyId := user.ID.String()
 

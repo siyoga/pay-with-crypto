@@ -42,7 +42,7 @@ func Auth(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Not found user"})
 	}
 
-	c.Locals("user", result)
+	c.Locals("company", result)
 	return c.Next()
 }
 

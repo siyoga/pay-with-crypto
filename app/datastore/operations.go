@@ -100,10 +100,10 @@ func DeleteBy[T All](key string, value any) bool {
 	return state
 }
 
-func Auth[T Authable](login string) (T, bool) {
+func Auth[T Authable](username string) (T, bool) {
 	var item T
 
-	result := Datastore.Where("login = ?", login).Find(&item)
+	result := Datastore.Where("name = ?", username).Find(&item)
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "Auth")
@@ -117,7 +117,7 @@ func Auth[T Authable](login string) (T, bool) {
 func SearchCardByName(value string) ([]Card, bool) {
 	var cards []Card
 
-	result := Datastore.Where("Name LIKE ?", "%"+value+"%").Find(&cards)
+	result := Datastore.Where("name LIKE ?", "%"+value+"%").Find(&cards)
 
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
