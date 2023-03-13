@@ -49,7 +49,7 @@ func LoginHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	user, state := db.UserAuth(requsetData.Company_Name, requsetData.Password)
+	user, state := db.Auth[db.User](requsetData.Login)
 	if !state {
 		return fiber.ErrBadRequest
 	}

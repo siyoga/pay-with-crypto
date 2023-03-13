@@ -133,7 +133,7 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 		return fiber.ErrForbidden
 	}
 
-	if state = db.DeleteCardsById(card.ID); !state {
+	if state = db.DeleteBy[db.Card]("id", card.ID); !state {
 		return fiber.ErrNotFound
 	}
 
@@ -148,11 +148,17 @@ func CardEditHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
+	if _, found := db.GetOneBy[db.Card]("id", changedCard.ID); !found {
+		return fiber.ErrBadRequest
+	}
+
 	if !db.IsCardValidToLoginedUser(changedCard.ID, loginedUser) {
 		return fiber.ErrForbidden
 	}
 
-	db.UpdateCardOnId(changedCard)
+	if !db.WholeOneUpdate(changedCard) {
+		return fiber.ErrInternalServerError
+	}
 
 	return c.Status(200).JSON(fiber.Map{"message": "Card successfully edited"})
 }
@@ -167,7 +173,7 @@ func CardGetByIdHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	card, state = db.GetCardById(cardId)
+	card, state = db.GetOneBy[db.Card]("id", cardId)
 
 	if !state {
 		return fiber.ErrNotFound
