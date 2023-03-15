@@ -59,10 +59,8 @@ func CardsSearcherByIdHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	if _, state = db.GetOneBy[db.Company]("id", result.CompanyID); !state {
-		if _, state = db.GetOneUnscopedBy[db.Company]("id", result.CompanyID); state {
-			return c.Status(404).JSON(fiber.Map{"message": "Company was banned"})
-		}
+	if db.IsCardOwnerSoftDeleted(result.CompanyID) {
+		return fiber.ErrForbidden
 	}
 
 	return c.Status(fiber.StatusOK).JSON(result)
@@ -83,10 +81,8 @@ func CardLogoUploaderHandler(c *fiber.Ctx) error {
 		return fiber.ErrNotFound
 	}
 
-	if _, state = db.GetOneBy[db.Company]("id", card.CompanyID); !state {
-		if _, state = db.GetOneUnscopedBy[db.Company]("id", card.CompanyID); state {
-			return c.Status(404).JSON(fiber.Map{"message": "Company was banned"})
-		}
+	if db.IsCardOwnerSoftDeleted(card.CompanyID) {
+		return fiber.ErrForbidden
 	}
 
 	if err != nil {
@@ -149,10 +145,8 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	if _, state = db.GetOneBy[db.Company]("id", card.CompanyID); !state {
-		if _, state = db.GetOneUnscopedBy[db.Company]("id", card.CompanyID); state {
-			return c.Status(404).JSON(fiber.Map{"message": "Company was banned"})
-		}
+	if db.IsCardOwnerSoftDeleted(card.CompanyID) {
+		return fiber.ErrForbidden
 	}
 
 	if !db.IsValid(card.CompanyID, loginedUser) {
@@ -179,10 +173,8 @@ func CardEditHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	if _, state = db.GetOneBy[db.Company]("id", changedCard.CompanyID); !state {
-		if _, state = db.GetOneUnscopedBy[db.Company]("id", changedCard.CompanyID); state {
-			return c.Status(404).JSON(fiber.Map{"message": "Company was banned"})
-		}
+	if db.IsCardOwnerSoftDeleted(changedCard.CompanyID) {
+		return fiber.ErrForbidden
 	}
 
 	if !db.IsValid(changedCard.CompanyID, loginedCompany) {
@@ -211,10 +203,8 @@ func CardGetByIdHandler(c *fiber.Ctx) error {
 		return fiber.ErrNotFound
 	}
 
-	if _, state = db.GetOneBy[db.Company]("id", card.CompanyID); !state {
-		if _, state = db.GetOneUnscopedBy[db.Company]("id", card.CompanyID); state {
-			return c.Status(404).JSON(fiber.Map{"message": "Company was banned"})
-		}
+	if db.IsCardOwnerSoftDeleted(card.CompanyID) {
+		return fiber.ErrForbidden
 	}
 
 	return c.Status(fiber.StatusOK).JSON(card)

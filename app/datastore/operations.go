@@ -5,6 +5,7 @@ import (
 	util "pay-with-crypto/app/utility"
 	"strings"
 
+	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -193,4 +194,14 @@ func AdminCheck() bool {
 		empty = true
 	}
 	return empty
+}
+
+func IsCardOwnerSoftDeleted(cardId uuid.UUID) bool {
+	if _, state := GetOneBy[Company]("id", cardId); !state {
+		if _, state := GetOneUnscopedBy[Company]("id", cardId); state {
+			return true
+		}
+		return false
+	}
+	return false
 }
