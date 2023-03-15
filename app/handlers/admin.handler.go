@@ -112,3 +112,22 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(response)
 }
+
+func SoftDeleteHandler(c *fiber.Ctx) error {
+	var company db.Company
+	var state bool
+
+	if err := c.BodyParser(&company); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	if company, state = db.GetOneBy[db.Company]("id", company.ID); !state {
+		return fiber.ErrBadRequest
+	}
+
+	if state = db.DeleteBy[db.Company]("id", company.ID); !state {
+		return fiber.ErrInternalServerError
+	}
+
+	return c.Status(200).JSON(fiber.Map{"message": "User deleted from scope"})
+}
