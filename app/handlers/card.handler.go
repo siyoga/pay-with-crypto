@@ -54,11 +54,15 @@ func CardsSearcherByIdHandler(c *fiber.Ctx) error {
 	}
 
 	if id != "" {
-		result, state = db.GetOneBy[db.Card]("id", id)
+		if result, state = db.GetOneBy[db.Card]("id", id); !state {
+			return fiber.ErrNotFound
+		}
 	}
 
-	if !state {
-		return fiber.ErrNotFound
+	if _, state = db.GetOneBy[db.Company]("id", result.CompanyID); !state {
+		if _, state = db.GetOneUnscopedBy[db.Company]("id", result.CompanyID); state {
+			return c.Status(404).JSON(fiber.Map{"message": "Company was banned"})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(result)
@@ -68,9 +72,21 @@ func CardLogoUploaderHandler(c *fiber.Ctx) error {
 	logoBucket := os.Getenv("S3_BUCKET_CARD_LOGO")
 	cardLogo, err := c.FormFile("cardLogo")
 	cardId := c.Query("cardId")
+	var card db.Card
+	var state bool
 
 	if cardId == "" {
 		return fiber.ErrBadRequest
+	}
+
+	if card, state = db.GetOneBy[db.Card]("id", cardId); !state {
+		return fiber.ErrNotFound
+	}
+
+	if _, state = db.GetOneBy[db.Company]("id", card.CompanyID); !state {
+		if _, state = db.GetOneUnscopedBy[db.Company]("id", card.CompanyID); state {
+			return c.Status(404).JSON(fiber.Map{"message": "Company was banned"})
+		}
 	}
 
 	if err != nil {
@@ -133,6 +149,12 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
+	if _, state = db.GetOneBy[db.Company]("id", card.CompanyID); !state {
+		if _, state = db.GetOneUnscopedBy[db.Company]("id", card.CompanyID); state {
+			return c.Status(404).JSON(fiber.Map{"message": "Company was banned"})
+		}
+	}
+
 	if !db.IsValid(card.CompanyID, loginedUser) {
 		return fiber.ErrForbidden
 	}
@@ -157,6 +179,12 @@ func CardEditHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
+	if _, state = db.GetOneBy[db.Company]("id", changedCard.CompanyID); !state {
+		if _, state = db.GetOneUnscopedBy[db.Company]("id", changedCard.CompanyID); state {
+			return c.Status(404).JSON(fiber.Map{"message": "Company was banned"})
+		}
+	}
+
 	if !db.IsValid(changedCard.CompanyID, loginedCompany) {
 
 		return c.Status(200).JSON(changedCard.CompanyID)
@@ -179,10 +207,14 @@ func CardGetByIdHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	card, state = db.GetOneBy[db.Card]("id", cardId)
-
-	if !state {
+	if card, state = db.GetOneBy[db.Card]("id", cardId); !state {
 		return fiber.ErrNotFound
+	}
+
+	if _, state = db.GetOneBy[db.Company]("id", card.CompanyID); !state {
+		if _, state = db.GetOneUnscopedBy[db.Company]("id", card.CompanyID); state {
+			return c.Status(404).JSON(fiber.Map{"message": "Company was banned"})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(card)

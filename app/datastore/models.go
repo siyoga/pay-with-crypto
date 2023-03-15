@@ -6,6 +6,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
+	"gorm.io/plugin/soft_delete"
 )
 
 type (
@@ -29,13 +30,15 @@ type (
 	}
 
 	Company struct {
-		ID            uuid.UUID `json:"id" gorm:"type:uuid"`
-		Name          string    `json:"name" gorm:"type:string"`
-		Image         string    `json:"image" gorm:"type:string"`
-		Password      string    `json:"password" gorm:"type:string"`
-		Mail          string    `json:"mail" gorm:"type:string"`
-		LinkToCompany string    `json:"linkToCompany" gorm:"type:string"`
-		Cards         []Card    `json:"cards" gorm:"foreignKey:CompanyID"`
+		ID            uuid.UUID             `json:"id" gorm:"type:uuid"`
+		Name          string                `json:"name" gorm:"type:string"`
+		Image         string                `json:"image" gorm:"type:string"`
+		Password      string                `json:"password" gorm:"type:string"`
+		Mail          string                `json:"mail" gorm:"type:string"`
+		LinkToCompany string                `json:"linkToCompany" gorm:"type:string"`
+		Cards         []Card                `json:"cards" gorm:"foreignKey:CompanyID"`
+		DeletedAt     time.Time             `json:"deletedAt" gorm:"type:time"`
+		IsDel         soft_delete.DeletedAt `json:"isDel" gorm:"softDelete:flag,DeletedAtField:DeletedAt"`
 	}
 
 	Card struct {
