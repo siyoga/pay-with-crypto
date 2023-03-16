@@ -110,8 +110,8 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 	}
 
 	newCard.ID = uuid.Must(uuid.NewV4())
-
 	newCard.CompanyID = company.ID
+	newCard.Approved = "pending"
 
 	if ok := db.Add(newCard); !ok {
 		return fiber.ErrInternalServerError
