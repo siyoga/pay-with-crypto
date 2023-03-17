@@ -12,5 +12,6 @@ func AdminController(a *fiber.App) {
 
 	route.Get("/getForApprove", middleware.AuthAdmin, handlers.GetCardsForApprove)
 	route.Post("/createTag", middleware.AuthAdmin, handlers.TagCreateHandler)
+	route.Put("/validateCard", middleware.AuthAdmin, handlers.ValidateCard)
 	route.Delete("/softDelete", middleware.AuthAdmin, handlers.SoftDeleteHandler)
 }

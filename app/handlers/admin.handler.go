@@ -3,6 +3,7 @@ package handlers
 import (
 	"os"
 	db "pay-with-crypto/app/datastore"
+	"pay-with-crypto/app/utility"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -35,7 +36,7 @@ func AdminRegisterHandler(c *fiber.Ctx) error {
 }
 
 func GetCardsForApprove(c *fiber.Ctx) error {
-	cards, _ := db.GetManyBy[db.Card]("approved", false)
+	cards, _ := db.GetManyBy[db.Card]("approved", "pending")
 
 	return c.Status(200).JSON(cards)
 }
@@ -111,6 +112,25 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+func ValidateCard(c *fiber.Ctx) error {
+	var body utility.Status
+	var response string
+
+	if err := c.BodyParser(&body); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	if body.Status == true {
+		db.UpdateOneBy[db.Card]("id", body.ID, "approved", "approved")
+		response = "Card is approved"
+	} else {
+		db.UpdateOneBy[db.Card]("id", body.ID, "approved", "disapproved")
+		response = "Card is disapproved"
+	}
+
+	return c.Status(200).JSON(response)
 }
 
 func SoftDeleteHandler(c *fiber.Ctx) error {
