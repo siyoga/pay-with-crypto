@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	db "pay-with-crypto/app/datastore"
 	"pay-with-crypto/app/utility"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
+	"github.com/sethvargo/go-password/password"
 
 	"net/mail"
 
@@ -101,4 +103,107 @@ func generatTokenResponse(payload jwt.MapClaims) (utility.JWTTokenPair, []error)
 
 	return response, errors
 
+}
+
+func AuthGoogleGetApprove(c *fiber.Ctx) error {
+	path := utility.ConfigGoogle()
+	url := path.AuthCodeURL("state")
+	return c.Redirect(url)
+}
+
+func Callback(c *fiber.Ctx) error {
+	var refreshToken db.RefreshToken
+
+	code := c.FormValue("code")
+
+	tokens, err := utility.GetTokens(code)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	UserData, err := utility.GetUserData(tokens)
+	if err != nil {
+		return err
+	}
+
+	UserDataFromDb, check := db.GetOneBy[db.User]("mail", UserData.Email)
+	if check == true {
+		response, err := AuthGoogleLoginUser(c, UserDataFromDb)
+		if err != nil {
+			return fiber.ErrBadRequest
+		}
+		return c.Status(fiber.StatusOK).JSON(response)
+	}
+
+	_, err = mail.ParseAddress(UserData.Email)
+	if err != nil {
+		return fiber.ErrBadRequest
+	}
+	res, err := password.Generate(64, 10, 10, false, false)
+	if err != nil {
+		return fiber.ErrInternalServerError
+	}
+
+	user := db.User{
+		ID:           uuid.Nil,
+		Company_Name: UserData.Name,
+		Image:        UserData.Picture,
+		Password:     res,
+		Mail:         UserData.Email,
+	}
+	user.ID = uuid.Must(uuid.NewV4())
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(res), 12)
+	if err != nil {
+		return fiber.ErrInternalServerError
+	}
+	user.Password = string(hash)
+
+	if ok := db.Add(user); !ok {
+		return fiber.ErrInternalServerError
+	}
+
+	payload := jwt.MapClaims{
+		"sub":       user.ID,
+		"generated": time.Now().Add(15 * 24 * time.Hour),
+	}
+
+	response, errs := generatTokenResponse(payload)
+	if errs[0] != nil {
+		return fiber.ErrInternalServerError
+	}
+	if errs[1] != nil {
+		return fiber.ErrInternalServerError
+	}
+
+	refreshToken.Token = response.RefreshToken
+
+	if ok := db.Add(refreshToken); !ok {
+		return fiber.ErrBadRequest
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+func AuthGoogleLoginUser(c *fiber.Ctx, userdata db.User) (utility.JWTTokenPair, error) {
+	var refreshToken db.RefreshToken
+	payload := jwt.MapClaims{
+		"sub":       userdata.ID,
+		"generated": time.Now().Add(15 * 24 * time.Hour),
+	}
+
+	response, errs := generatTokenResponse(payload)
+	if errs[0] != nil {
+		return utility.JWTTokenPair{}, errs[0]
+	}
+	if errs[1] != nil {
+		return utility.JWTTokenPair{}, errs[1]
+	}
+
+	refreshToken.Token = response.RefreshToken
+
+	if ok := db.Add(refreshToken); !ok {
+		return utility.JWTTokenPair{}, fiber.ErrBadRequest
+	}
+
+	return response, nil
 }

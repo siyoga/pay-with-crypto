@@ -10,6 +10,10 @@ import (
 func AuthController(a *fiber.App) {
 	route := a.Group("/auth")
 
+	route.Get("/google/register", handlers.AuthGoogleGetApprove)
+	route.Get("/google/callback", handlers.Callback)
+	route.Get("/google/login", handlers.AuthGoogleGetApprove)
+
 	route.Post("/register", handlers.RegisterHandler)
 	route.Post("/login", handlers.LoginHandler)
 	route.Post("/admin_register", middleware.AuthAdmin, handlers.AdminRegisterHandler)
