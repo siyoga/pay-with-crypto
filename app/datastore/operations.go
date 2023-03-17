@@ -205,13 +205,3 @@ func IsCardOwnerSoftDeleted(cardId uuid.UUID) bool {
 	}
 	return false
 }
-
-func ExportedIsUniqueAdmin(adminName string) bool {
-	var count int64
-	var empty bool
-	Datastore.Model(&Admin{}).Where("name = ?", adminName).Count(&count)
-	if count == 0 {
-		empty = true
-	}
-	return empty
-}
