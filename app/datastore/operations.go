@@ -5,6 +5,7 @@ import (
 	util "pay-with-crypto/app/utility"
 	"strings"
 
+	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -28,6 +29,23 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
 			util.Error(result.Error, "GetOneBy")
+		}
+
+		return i, false
+
+	}
+
+	return i, true
+}
+
+func GetOneUnscopedBy[T All](key string, value interface{}) (T, bool) {
+	var i T
+
+	result := Datastore.Unscoped().Where(map[string]interface{}{key: value}).First(&i)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
+			util.Error(result.Error, "GetOneUnscopedBy")
 		}
 
 		return i, false
@@ -100,10 +118,10 @@ func DeleteBy[T All](key string, value any) bool {
 	return state
 }
 
-func Auth[T Authable](username string) (T, bool) {
+func Auth[T Authable](name string) (T, bool) {
 	var item T
 
-	result := Datastore.Where("name = ?", username).Find(&item)
+	result := Datastore.Where("name = ?", name).Find(&item)
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "Auth")
@@ -176,4 +194,14 @@ func AdminCheck() bool {
 		empty = true
 	}
 	return empty
+}
+
+func IsCardOwnerSoftDeleted(cardId uuid.UUID) bool {
+	if _, state := GetOneBy[Company]("id", cardId); !state {
+		if _, state := GetOneUnscopedBy[Company]("id", cardId); state {
+			return true
+		}
+		return false
+	}
+	return false
 }
