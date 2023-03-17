@@ -54,11 +54,13 @@ func CardsSearcherByIdHandler(c *fiber.Ctx) error {
 	}
 
 	if id != "" {
-		result, state = db.GetOneBy[db.Card]("id", id)
+		if result, state = db.GetOneBy[db.Card]("id", id); !state {
+			return fiber.ErrNotFound
+		}
 	}
 
-	if !state {
-		return fiber.ErrNotFound
+	if db.IsCardOwnerSoftDeleted(result.CompanyID) {
+		return fiber.ErrForbidden
 	}
 
 	return c.Status(fiber.StatusOK).JSON(result)
@@ -68,9 +70,19 @@ func CardLogoUploaderHandler(c *fiber.Ctx) error {
 	logoBucket := os.Getenv("S3_BUCKET_CARD_LOGO")
 	cardLogo, err := c.FormFile("cardLogo")
 	cardId := c.Query("cardId")
+	var card db.Card
+	var state bool
 
 	if cardId == "" {
 		return fiber.ErrBadRequest
+	}
+
+	if card, state = db.GetOneBy[db.Card]("id", cardId); !state {
+		return fiber.ErrNotFound
+	}
+
+	if db.IsCardOwnerSoftDeleted(card.CompanyID) {
+		return fiber.ErrForbidden
 	}
 
 	if err != nil {
@@ -103,15 +115,15 @@ func CardLogoUploaderHandler(c *fiber.Ctx) error {
 
 func CardCreatorHandler(c *fiber.Ctx) error {
 	var newCard db.Card
-	user := c.Locals("user").(db.User)
+	company := c.Locals("company").(db.Company)
 
 	if err := c.BodyParser(&newCard); err != nil {
 		return fiber.ErrBadRequest
 	}
 
 	newCard.ID = uuid.Must(uuid.NewV4())
-
-	newCard.UserID = user.ID
+	newCard.CompanyID = company.ID
+	newCard.Approved = "pending"
 
 	if ok := db.Add(newCard); !ok {
 		return fiber.ErrInternalServerError
@@ -123,17 +135,25 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 func CardDeleteHandler(c *fiber.Ctx) error {
 	var card db.Card
 	var state bool
-	loginedUser := c.Locals("user").(db.User).ID
+	loginedUser := c.Locals("company").(db.Company).ID
 
 	if err := c.BodyParser(&card); err != nil {
 		return err
 	}
 
-	if !db.IsCardValidToLoginedUser(card.ID, loginedUser) {
+	if card, state = db.GetOneBy[db.Card]("id", card.ID); !state {
+		return fiber.ErrBadRequest
+	}
+
+	if db.IsCardOwnerSoftDeleted(card.CompanyID) {
 		return fiber.ErrForbidden
 	}
 
-	if state = db.DeleteCardsById(card.ID); !state {
+	if !db.IsValid(card.CompanyID, loginedUser) {
+		return fiber.ErrForbidden
+	}
+
+	if state = db.DeleteBy[db.Card]("id", card.ID); !state {
 		return fiber.ErrNotFound
 	}
 
@@ -142,17 +162,29 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 
 func CardEditHandler(c *fiber.Ctx) error {
 	var changedCard db.Card
-	loginedUser := c.Locals("user").(db.User).ID
+	var state bool
+	loginedCompany := c.Locals("company").(db.Company).ID
 
 	if err := c.BodyParser(&changedCard); err != nil {
 		return fiber.ErrBadRequest
 	}
 
-	if !db.IsCardValidToLoginedUser(changedCard.ID, loginedUser) {
+	if changedCard, state = db.GetOneBy[db.Card]("id", changedCard.ID); !state {
+		return fiber.ErrBadRequest
+	}
+
+	if db.IsCardOwnerSoftDeleted(changedCard.CompanyID) {
 		return fiber.ErrForbidden
 	}
 
-	db.UpdateCardOnId(changedCard)
+	if !db.IsValid(changedCard.CompanyID, loginedCompany) {
+
+		return c.Status(200).JSON(changedCard.CompanyID)
+	}
+
+	if !db.WholeOneUpdate(changedCard) {
+		return fiber.ErrInternalServerError
+	}
 
 	return c.Status(200).JSON(fiber.Map{"message": "Card successfully edited"})
 }
@@ -167,10 +199,12 @@ func CardGetByIdHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	card, state = db.GetCardById(cardId)
-
-	if !state {
+	if card, state = db.GetOneBy[db.Card]("id", cardId); !state {
 		return fiber.ErrNotFound
+	}
+
+	if db.IsCardOwnerSoftDeleted(card.CompanyID) {
+		return fiber.ErrForbidden
 	}
 
 	return c.Status(fiber.StatusOK).JSON(card)

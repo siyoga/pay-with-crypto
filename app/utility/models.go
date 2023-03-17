@@ -1,5 +1,7 @@
 package utility
 
+import "github.com/gofrs/uuid"
+
 type (
 	JWTTokenPair struct {
 		AccessToken  string `json:"accessToken"`
@@ -25,5 +27,10 @@ type (
 		Family_name    string
 		Picture        string
 		Locale         string
+  }
+	
+  Status struct {
+		ID     uuid.UUID `json:"id" gorm:"type:uuid"`
+		Status bool      `json:"status" gorm:"bool"`
 	}
 )

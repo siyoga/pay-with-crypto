@@ -17,10 +17,15 @@ import (
 )
 
 func RegisterHandler(c *fiber.Ctx) error {
-	var user db.User
+	var user db.Company
 
 	if err := c.BodyParser(&user); err != nil {
 		return fiber.ErrBadRequest
+	}
+
+	if _, engaged := db.GetOneBy[db.Company]("name", user.Name); engaged {
+
+		return fiber.ErrConflict
 	}
 
 	_, err := mail.ParseAddress(user.Mail)
@@ -44,14 +49,14 @@ func RegisterHandler(c *fiber.Ctx) error {
 }
 
 func LoginHandler(c *fiber.Ctx) error {
-	var requsetData db.User
+	var requsetData db.Company
 	var refreshToken db.RefreshToken
 
 	if err := c.BodyParser(&requsetData); err != nil {
 		return fiber.ErrBadRequest
 	}
 
-	user, state := db.UserAuth(requsetData.Company_Name, requsetData.Password)
+	user, state := db.Auth[db.Company](requsetData.Name)
 	if !state {
 		return fiber.ErrBadRequest
 	}

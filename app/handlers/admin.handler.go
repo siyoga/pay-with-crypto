@@ -3,6 +3,7 @@ package handlers
 import (
 	"os"
 	db "pay-with-crypto/app/datastore"
+	"pay-with-crypto/app/utility"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,6 +18,11 @@ func AdminRegisterHandler(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&admin); err != nil {
 		return fiber.ErrBadRequest
+	}
+
+	if _, engaged := db.GetOneBy[db.Admin]("name", admin.Name); engaged {
+
+		return fiber.ErrConflict
 	}
 
 	admin.ID = uuid.Must(uuid.NewV4())
@@ -35,7 +41,7 @@ func AdminRegisterHandler(c *fiber.Ctx) error {
 }
 
 func GetCardsForApprove(c *fiber.Ctx) error {
-	cards, _ := db.GetManyBy[db.Card]("approved", false)
+	cards, _ := db.GetManyBy[db.Card]("approved", "pending")
 
 	return c.Status(200).JSON(cards)
 }
@@ -62,7 +68,7 @@ func CreateFirstAdmin() {
 	var firstAdmin db.Admin
 
 	firstAdmin.ID = uuid.Must(uuid.NewV4())
-	firstAdmin.UserName = os.Getenv("ADMIN_USERNAME")
+	firstAdmin.Name = os.Getenv("ADMIN_USERNAME")
 	firstAdmin.FirstName = os.Getenv("ADMIN_FIRSTNAME")
 	firstAdmin.LastName = os.Getenv("ADMIN_LASTNAME")
 	firstAdmin.Password = os.Getenv("ADMIN_PASSWORD")
@@ -82,7 +88,7 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	admin, state := db.AdminAuth(requsetData.UserName, requsetData.Password)
+	admin, state := db.Auth[db.Admin](requsetData.Name)
 	if !state {
 		return fiber.ErrBadRequest
 	}
@@ -111,4 +117,42 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+func ValidateCard(c *fiber.Ctx) error {
+	var body utility.Status
+	var response string
+
+	if err := c.BodyParser(&body); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	if body.Status == true {
+		db.UpdateOneBy[db.Card]("id", body.ID, "approved", "approved")
+		response = "Card is approved"
+	} else {
+		db.UpdateOneBy[db.Card]("id", body.ID, "approved", "disapproved")
+		response = "Card is disapproved"
+	}
+
+	return c.Status(200).JSON(response)
+}
+
+func SoftDeleteHandler(c *fiber.Ctx) error {
+	var company db.Company
+	var state bool
+
+	if err := c.BodyParser(&company); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	if company, state = db.GetOneBy[db.Company]("id", company.ID); !state {
+		return fiber.ErrBadRequest
+	}
+
+	if state = db.DeleteBy[db.Company]("id", company.ID); !state {
+		return fiber.ErrInternalServerError
+	}
+
+	return c.Status(200).JSON(fiber.Map{"message": "User deleted from scope"})
 }
