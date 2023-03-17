@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	db "pay-with-crypto/app/datastore"
 	"pay-with-crypto/app/utility"
 	"time"
@@ -8,13 +9,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
-	"honnef.co/go/tools/config"
+	"github.com/sethvargo/go-password/password"
 
 	"net/mail"
 
 	"golang.org/x/crypto/bcrypt"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 )
 
 func RegisterHandler(c *fiber.Ctx) error {
@@ -102,14 +101,52 @@ func generatTokenResponse(payload jwt.MapClaims) (utility.JWTTokenPair, []error)
 }
 
 func AuthGoogle(c *fiber.Ctx) error {
-	path := &oauth2.Config{
-		ClientID:     config.Config("GOOGLE_CLIENT"),
-		ClientSecret: config.Config("GOOGLE_SECRET"),
-		RedirectURL:  config.Config("GOOGLE_REDIRECT_URL"),
-		Scopes: []string{
-			"https://www.googleapis.com/auth/userinfo.email"}, // you can use other scopes to get more data
-		Endpoint: google.Endpoint,
-	}
+	path := utility.ConfigGoogle()
 	url := path.AuthCodeURL("state")
 	return c.Redirect(url)
+}
+
+func Callback(c *fiber.Ctx) error {
+	var refreshToken db.RefreshToken
+	code := c.FormValue("code")
+
+	tokens, err := utility.GetTokens(code)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	UserData, err := utility.GetUserData(tokens)
+	if err != nil {
+		return err
+	}
+
+	res, err := password.Generate(64, 10, 10, false, false)
+	if err != nil {
+		return fiber.ErrInternalServerError
+	}
+
+	user, state := db.UserAuth(UserData.Name, res)
+	if !state {
+		return fiber.ErrBadRequest
+	}
+
+	payload := jwt.MapClaims{
+		"sub":       user.ID,
+		"generated": time.Now().Add(15 * 24 * time.Hour),
+	}
+
+	response, errs := generatTokenResponse(payload)
+	if errs[0] != nil {
+		return fiber.ErrInternalServerError
+	}
+	if errs[1] != nil {
+		return fiber.ErrInternalServerError
+	}
+
+	refreshToken.Token = response.RefreshToken
+
+	if ok := db.Add(refreshToken); !ok {
+		return fiber.ErrBadRequest
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
 }
