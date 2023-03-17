@@ -21,7 +21,7 @@ func RegisterHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	if empty := db.ExportedIsUniqueCompany(user.Name); !empty {
+	if _, engaged := db.GetOneBy[db.Company]("name", user.Name); engaged {
 
 		return fiber.ErrConflict
 	}

@@ -19,7 +19,7 @@ func AdminRegisterHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	if empty := db.ExportedIsUniqueAdmin(admin.Name); !empty {
+	if _, engaged := db.GetOneBy[db.Admin]("name", admin.Name); engaged {
 
 		return fiber.ErrConflict
 	}
