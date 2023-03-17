@@ -20,6 +20,11 @@ func AdminRegisterHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
+	if _, engaged := db.GetOneBy[db.Admin]("name", admin.Name); engaged {
+
+		return fiber.ErrConflict
+	}
+
 	admin.ID = uuid.Must(uuid.NewV4())
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(admin.Password), 12)

@@ -21,6 +21,11 @@ func RegisterHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
+	if _, engaged := db.GetOneBy[db.Company]("name", user.Name); engaged {
+
+		return fiber.ErrConflict
+	}
+
 	_, err := mail.ParseAddress(user.Mail)
 	if err != nil {
 		return fiber.ErrBadRequest
