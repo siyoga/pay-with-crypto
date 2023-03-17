@@ -12,7 +12,7 @@ import (
 
 func MinioConnect() (*minio.Client, bool) {
 	ctx := context.Background()
-	endpoint := "localhost:9000"
+	endpoint := os.Getenv("S3_HOST")
 	accessKeyId := os.Getenv("S3_USER")
 	secretAccessKey := os.Getenv("S3_PASSWORD")
 

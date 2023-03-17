@@ -87,24 +87,6 @@ func LoginHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func generatTokenResponse(payload jwt.MapClaims) (utility.JWTTokenPair, []error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
-	var response utility.JWTTokenPair
-	errors := make([]error, 2)
-
-	accessToken, err_access := token.SignedString([]byte("secretAccessKey"))
-	refreshToken, err_refresh := token.SignedString([]byte("secretRefreshKey"))
-
-	response.AccessToken = accessToken
-	response.RefreshToken = refreshToken
-
-	errors[0] = err_access
-	errors[1] = err_refresh
-
-	return response, errors
-
-}
-
 func AuthGoogleGetApprove(c *fiber.Ctx) error {
 	path := utility.ConfigGoogle()
 	url := path.AuthCodeURL("state")
@@ -125,8 +107,8 @@ func Callback(c *fiber.Ctx) error {
 		return err
 	}
 
-	UserDataFromDb, check := db.GetOneBy[db.User]("mail", UserData.Email)
-	if check == true {
+	UserDataFromDb, check := db.GetOneBy[db.Company]("mail", UserData.Email)
+	if check {
 		response, err := AuthGoogleLoginUser(c, UserDataFromDb)
 		if err != nil {
 			return fiber.ErrBadRequest
@@ -143,12 +125,12 @@ func Callback(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	user := db.User{
-		ID:           uuid.Nil,
-		Company_Name: UserData.Name,
-		Image:        UserData.Picture,
-		Password:     res,
-		Mail:         UserData.Email,
+	user := db.Company{
+		ID:       uuid.Nil,
+		Name:     UserData.Name,
+		Image:    UserData.Picture,
+		Password: res,
+		Mail:     UserData.Email,
 	}
 	user.ID = uuid.Must(uuid.NewV4())
 
@@ -184,7 +166,7 @@ func Callback(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func AuthGoogleLoginUser(c *fiber.Ctx, userdata db.User) (utility.JWTTokenPair, error) {
+func AuthGoogleLoginUser(c *fiber.Ctx, userdata db.Company) (utility.JWTTokenPair, error) {
 	var refreshToken db.RefreshToken
 	payload := jwt.MapClaims{
 		"sub":       userdata.ID,
@@ -206,4 +188,21 @@ func AuthGoogleLoginUser(c *fiber.Ctx, userdata db.User) (utility.JWTTokenPair, 
 	}
 
 	return response, nil
+}
+
+func generatTokenResponse(payload jwt.MapClaims) (utility.JWTTokenPair, []error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
+	var response utility.JWTTokenPair
+	errors := make([]error, 2)
+
+	accessToken, err_access := token.SignedString([]byte("secretAccessKey"))
+	refreshToken, err_refresh := token.SignedString([]byte("secretRefreshKey"))
+
+	response.AccessToken = accessToken
+	response.RefreshToken = refreshToken
+
+	errors[0] = err_access
+	errors[1] = err_refresh
+
+	return response, errors
 }

@@ -127,7 +127,7 @@ func ValidateCard(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	if body.Status == true {
+	if body.Status {
 		db.UpdateOneBy[db.Card]("id", body.ID, "approved", "approved")
 		response = "Card is approved"
 	} else {
