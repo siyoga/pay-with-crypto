@@ -21,6 +21,11 @@ func RegisterHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
+	if empty := db.ExportedIsUniqueCompany(user.Name); !empty {
+
+		return fiber.ErrConflict
+	}
+
 	_, err := mail.ParseAddress(user.Mail)
 	if err != nil {
 		return fiber.ErrBadRequest

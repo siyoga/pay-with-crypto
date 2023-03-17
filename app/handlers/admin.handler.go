@@ -19,6 +19,11 @@ func AdminRegisterHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
+	if empty := db.ExportedIsUniqueAdmin(admin.Name); !empty {
+
+		return fiber.ErrConflict
+	}
+
 	admin.ID = uuid.Must(uuid.NewV4())
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(admin.Password), 12)
