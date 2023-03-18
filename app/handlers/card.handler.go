@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"os"
 	db "pay-with-crypto/app/datastore"
 	"pay-with-crypto/app/datastore/s3"
@@ -64,6 +65,30 @@ func CardsSearcherByIdHandler(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(result)
+}
+
+func CardLogoGetterHandler(c *fiber.Ctx) error {
+	cardId := c.Query("cardId")
+
+	if cardId == "" {
+		return fiber.ErrBadRequest
+	}
+
+	card, state := db.GetOneBy[db.Card]("id", cardId)
+
+	if !state {
+		return fiber.ErrNotFound
+	}
+
+	var output string
+
+	if card.Image == "" {
+		output = ""
+	} else {
+		output = fmt.Sprintf("http://http://217.25.95.4:9000/card-logos/%s", card.Image)
+	}
+
+	return c.JSON(fiber.Map{"link": output})
 }
 
 func CardLogoUploaderHandler(c *fiber.Ctx) error {
