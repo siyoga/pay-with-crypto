@@ -148,6 +148,22 @@ func SearchCardByName(value string) ([]Card, bool) {
 	return cards, true
 }
 
+func SearchCard(name string, tags string) ([]Card, bool) {
+	var cards []Card
+
+	splitedTags := pq.StringArray(strings.Split(tags, "&"))
+
+	result := Datastore.Where("name LIKE ? AND Tags && ?", "%"+name+"%", splitedTags).Find(&cards)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "Search")
+		}
+		return cards, false
+	}
+	return cards, true
+}
+
 func SearchCardsByTags(rawTags string) ([]Card, bool) {
 	var cards []Card
 
