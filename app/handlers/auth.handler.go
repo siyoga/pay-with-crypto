@@ -24,7 +24,6 @@ func RegisterHandler(c *fiber.Ctx) error {
 	}
 
 	if _, engaged := db.GetOneBy[db.Company]("name", user.Name); engaged {
-
 		return fiber.ErrConflict
 	}
 

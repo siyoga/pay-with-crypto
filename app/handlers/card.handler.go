@@ -121,6 +121,10 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
+	if _, engaged := db.GetOneBy[db.Card]("name", newCard.Name); engaged {
+		return fiber.ErrConflict
+	}
+
 	newCard.ID = uuid.Must(uuid.NewV4())
 	newCard.CompanyID = company.ID
 	newCard.Approved = "pending"
