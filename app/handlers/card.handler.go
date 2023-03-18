@@ -85,7 +85,7 @@ func CardLogoGetterHandler(c *fiber.Ctx) error {
 	if card.Image == "" {
 		output = ""
 	} else {
-		output = fmt.Sprintf("http://http://217.25.95.4:9000/card-logos/%s", card.Image)
+		output = fmt.Sprintf("http://217.25.95.4:9000/card-logos/%s", card.Image)
 	}
 
 	return c.JSON(fiber.Map{"link": output})
