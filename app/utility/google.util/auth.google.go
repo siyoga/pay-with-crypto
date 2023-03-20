@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/grokify/go-pkce"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -29,13 +30,14 @@ func ConfigGoogle() *oauth2.Config {
 	return conf
 }
 
-func GetTokens(token string) (*GoogleOauthToken, error) {
+func GetTokens(token string, PCKECode string) (*GoogleOauthToken, error) {
 	values := url.Values{}
 	values.Add("grant_type", "authorization_code")
 	values.Add("code", token)
 	values.Add("client_id", os.Getenv("GOOGLE_CLIENT"))
 	values.Add("client_secret", os.Getenv("GOOGLE_SECRET"))
 	values.Add("redirect_uri", os.Getenv("GOOGLE_REDIRECT_URL"))
+	values.Add("code_verifier", PCKECode)
 
 	query := values.Encode()
 
@@ -125,4 +127,15 @@ func GetUserData(tokens *GoogleOauthToken) (*GoogleUserResult, error) {
 	}
 
 	return userBody, nil
+}
+
+func CreatePKCE() *PKCE {
+	NewPKCE := PKCE{
+		pkce.NewCodeVerifier(),
+		""}
+
+	NewPKCE.CodeChallenge = (pkce.CodeChallengeS256(NewPKCE.CodeVerifier))
+
+	ThePKCE = &NewPKCE
+	return ThePKCE
 }

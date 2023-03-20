@@ -4,16 +4,19 @@ import (
 	"fmt"
 	db "pay-with-crypto/app/datastore"
 	"pay-with-crypto/app/utility"
+	googleutil "pay-with-crypto/app/utility/google.util"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
+	"github.com/grokify/go-pkce"
 	"github.com/sethvargo/go-password/password"
 
 	"net/mail"
 
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
 )
 
 func RegisterHandler(c *fiber.Ctx) error {
@@ -87,21 +90,32 @@ func LoginHandler(c *fiber.Ctx) error {
 }
 
 func AuthGoogleGetApprove(c *fiber.Ctx) error {
-	path := utility.ConfigGoogle()
-	url := path.AuthCodeURL("state")
+	path := googleutil.ConfigGoogle()
+
+	NewPKCE := *googleutil.CreatePKCE()
+
+	url := path.AuthCodeURL("state",
+		oauth2.SetAuthURLParam(pkce.ParamCodeChallenge, NewPKCE.CodeChallenge),
+		oauth2.SetAuthURLParam(pkce.ParamCodeChallengeMethod, pkce.MethodS256)) //TODO!:CHANGE STATE TO SOMETHING MORE SECURITY STRONG. In theory it should be random each time, but not sure.
 	return c.Redirect(url)
 }
 
 func Callback(c *fiber.Ctx) error {
 	var refreshToken db.RefreshToken
 
-	code := c.FormValue("code")
+	state := c.FormValue("state")
+	if state != "state" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Missing or malformed URI"})
+	}
 
-	tokens, err := utility.GetTokens(code)
+	code := c.FormValue("code")
+	PCKECode := googleutil.ThePKCE.CodeVerifier
+
+	tokens, err := googleutil.GetTokens(code, PCKECode)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	UserData, err := utility.GetUserData(tokens)
+	UserData, err := googleutil.GetUserData(tokens)
 	if err != nil {
 		return err
 	}
