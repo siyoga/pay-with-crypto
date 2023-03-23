@@ -47,6 +47,10 @@ func CardsSearcherByIdHandler(c *fiber.Ctx) error {
 		if result, state = db.GetOneBy[db.Card]("id", id); !state {
 			return fiber.ErrNotFound
 		}
+		result.Views++
+		if !db.WholeOneUpdate(result) {
+			return fiber.ErrInternalServerError
+		}
 	}
 
 	if db.IsCardOwnerSoftDeleted(result.CompanyID) {
