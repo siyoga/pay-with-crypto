@@ -4,11 +4,9 @@ import (
 	"os"
 	db "pay-with-crypto/app/datastore"
 	"pay-with-crypto/app/utility"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
-	"github.com/golang-jwt/jwt"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -97,12 +95,7 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	payload := jwt.MapClaims{
-		"sub":       admin.ID,
-		"generated": time.Now().Add(15 * 24 * time.Hour),
-	}
-
-	response, errs := generatTokenResponse(payload)
+	response, errs := generatTokenResponse(admin.ID)
 	if errs[0] != nil {
 		return fiber.ErrInternalServerError
 	}
