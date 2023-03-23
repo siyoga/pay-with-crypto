@@ -72,6 +72,6 @@ type (
 	}
 
 	RefreshToken struct {
-		Token string `json:"token" gorm:"string"`
+		Token string `json:"token" gorm:"type:string"`
 	}
 )

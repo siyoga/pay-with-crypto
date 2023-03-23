@@ -58,21 +58,16 @@ func LoginHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	user, state := db.Auth[db.Company](requsetData.Name)
+	company, state := db.Auth[db.Company](requsetData.Name)
 	if !state {
 		return fiber.ErrBadRequest
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(requsetData.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(company.Password), []byte(requsetData.Password)); err != nil {
 		return fiber.ErrBadRequest
 	}
 
-	payload := jwt.MapClaims{
-		"sub":       user.ID,
-		"generated": time.Now().Add(15 * 24 * time.Hour),
-	}
-
-	response, errs := generatTokenResponse(payload)
+	response, errs := generatTokenResponse(company.ID)
 	if errs[0] != nil {
 		return fiber.ErrInternalServerError
 	}
@@ -87,6 +82,34 @@ func LoginHandler(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+func UpdateTokensHandler(c *fiber.Ctx) error {
+	var refreshToken db.RefreshToken
+	company := c.Locals("company").(db.Company)
+
+	if err := c.BodyParser(&refreshToken); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	if _, state := db.GetOneBy[db.RefreshToken]("token", refreshToken.Token); !state {
+		return fiber.ErrBadRequest
+	}
+
+	response, errs := generatTokenResponse(company.ID)
+	if errs[0] != nil {
+		return fiber.ErrInternalServerError
+	}
+	if errs[1] != nil {
+		return fiber.ErrInternalServerError
+	}
+
+	if _, ok := db.UpdateOneBy[db.RefreshToken]("token", string(refreshToken.Token), "token", string(response.RefreshToken)); !ok {
+		return fiber.ErrBadRequest
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
+
 }
 
 func AuthGoogleGetApprove(c *fiber.Ctx) error {
@@ -157,12 +180,7 @@ func Callback(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	payload := jwt.MapClaims{
-		"sub":       user.ID,
-		"generated": time.Now().Add(15 * 24 * time.Hour),
-	}
-
-	response, errs := generatTokenResponse(payload)
+	response, errs := generatTokenResponse(user.ID)
 	if errs[0] != nil {
 		return fiber.ErrInternalServerError
 	}
@@ -181,12 +199,8 @@ func Callback(c *fiber.Ctx) error {
 
 func AuthGoogleLoginUser(c *fiber.Ctx, userdata db.Company) (utility.JWTTokenPair, error) {
 	var refreshToken db.RefreshToken
-	payload := jwt.MapClaims{
-		"sub":       userdata.ID,
-		"generated": time.Now().Add(15 * 24 * time.Hour),
-	}
 
-	response, errs := generatTokenResponse(payload)
+	response, errs := generatTokenResponse(userdata.ID)
 	if errs[0] != nil {
 		return utility.JWTTokenPair{}, errs[0]
 	}
@@ -203,7 +217,13 @@ func AuthGoogleLoginUser(c *fiber.Ctx, userdata db.Company) (utility.JWTTokenPai
 	return response, nil
 }
 
-func generatTokenResponse(payload jwt.MapClaims) (utility.JWTTokenPair, []error) {
+func generatTokenResponse(companyID uuid.UUID) (utility.JWTTokenPair, []error) {
+
+	payload := jwt.MapClaims{
+		"sub":       companyID,
+		"generated": time.Now().Add(15 * 24 * time.Hour),
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
 	var response utility.JWTTokenPair
 	errors := make([]error, 2)
