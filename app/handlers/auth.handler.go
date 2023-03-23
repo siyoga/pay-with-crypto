@@ -89,6 +89,39 @@ func LoginHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
+func GetValidTokensHandler(c *fiber.Ctx) error {
+	var newRefreshToken db.RefreshToken
+	company := c.Locals("company").(db.Company)
+
+	refreshToken := c.Query("refreshToken")
+
+	if _, state := db.GetOneBy[db.RefreshToken]("token", refreshToken); !state {
+		return fiber.ErrBadRequest
+	}
+
+	payload := jwt.MapClaims{
+		"sub":       company.ID,
+		"generated": time.Now().Add(15 * 24 * time.Hour),
+	}
+
+	response, errs := generatTokenResponse(payload)
+	if errs[0] != nil {
+		return fiber.ErrInternalServerError
+	}
+	if errs[1] != nil {
+		return fiber.ErrInternalServerError
+	}
+
+	newRefreshToken.Token = response.RefreshToken
+
+	if ok := db.Add(newRefreshToken); !ok {
+		return fiber.ErrBadRequest
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
+
+}
+
 func AuthGoogleGetApprove(c *fiber.Ctx) error {
 	path := googleutil.ConfigGoogle()
 
