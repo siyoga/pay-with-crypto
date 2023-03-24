@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  database:
+    image: 'postgres:14.2-alpine'
+    container_name: database
+    networks:
+      - app-network
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+
+  minio:
+    image: minio/minio:latest
+    container_name: s3
+    command: server --console-address ":9001" /data/
+    networks:
+      - app-network
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      - MINIO_ROOT_USER=${S3_USER}
+      - MINIO_ROOT_PASSWORD=${S3_PASSWORD}
+    volumes:
+      - minio-storage:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  server:
+    container_name: server
+    networks:
+      - app-network
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ./wait-for-postgres.sh database ./main -p
+    depends_on:
+      - database
+    env_file:
+      - prod.env
+    environment:
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    ports:
+      - 8081:8081
+
+volumes:
+  minio-storage:
+
+networks:
+  app-network:

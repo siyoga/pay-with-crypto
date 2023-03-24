@@ -2,6 +2,7 @@ package s3
 
 import (
 	"context"
+	"fmt"
 	"mime/multipart"
 	"path/filepath"
 	"pay-with-crypto/app/utility"
@@ -17,7 +18,6 @@ func UploadFile(file *multipart.FileHeader, buffer multipart.File, bucketName st
 		return nil, false
 	}
 
-	// TODO: add user id to filename
 	ext := filepath.Ext(file.Filename)
 	fileName = fileName + ext
 	fileBuffer := buffer
@@ -27,6 +27,7 @@ func UploadFile(file *multipart.FileHeader, buffer multipart.File, bucketName st
 	_, err := minioClient.PutObject(ctx, bucketName, fileName, fileBuffer, fileSize, minio.PutObjectOptions{ContentType: contentType})
 
 	if err != nil {
+		fmt.Println(err)
 		utility.Error(err, "Upload File")
 		return nil, false
 	}

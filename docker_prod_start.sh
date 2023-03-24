@@ -1,1 +1,1 @@
-docker-compose --env-file prod.env up -d
+docker-compose -f docker-compose.prod.yml --env-file prod.env up

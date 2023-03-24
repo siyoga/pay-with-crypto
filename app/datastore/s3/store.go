@@ -16,6 +16,8 @@ func MinioConnect() (*minio.Client, bool) {
 	accessKeyId := os.Getenv("S3_USER")
 	secretAccessKey := os.Getenv("S3_PASSWORD")
 
+	fmt.Println("s3 endpoint: " + endpoint)
+
 	minioClient, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKeyId, secretAccessKey, ""),
 		Secure: false,
@@ -36,6 +38,7 @@ func MinioConnect() (*minio.Client, bool) {
 		err := minioClient.MakeBucket(ctx, buckets[i].BucketName, minio.MakeBucketOptions{Region: buckets[i].Location})
 
 		if err != nil {
+			fmt.Println(err)
 			exist, errBucketExists := minioClient.BucketExists(ctx, buckets[i].BucketName)
 			if errBucketExists == nil && exist {
 				fmt.Printf("Bucket %s already created. \n", buckets[i].BucketName)

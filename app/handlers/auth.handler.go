@@ -51,19 +51,19 @@ func RegisterHandler(c *fiber.Ctx) error {
 }
 
 func LoginHandler(c *fiber.Ctx) error {
-	var requsetData db.Company
+	var requestData db.Company
 	var refreshToken db.RefreshToken
 
-	if err := c.BodyParser(&requsetData); err != nil {
+	if err := c.BodyParser(&requestData); err != nil {
 		return fiber.ErrBadRequest
 	}
 
-	user, state := db.Auth[db.Company](requsetData.Name)
+	user, state := db.Auth[db.Company](requestData.Name)
 	if !state {
 		return fiber.ErrBadRequest
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(requsetData.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(requestData.Password)); err != nil {
 		return fiber.ErrBadRequest
 	}
 
