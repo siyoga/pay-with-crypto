@@ -95,7 +95,7 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	response, errs := generatTokenResponse(admin.ID)
+	response, errs := generateTokenResponse(admin.ID)
 	if errs[0] != nil {
 		return fiber.ErrInternalServerError
 	}

@@ -58,24 +58,17 @@ func LoginHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-<<<<<<< HEAD
-	user, state := db.Auth[db.Company](requestData.Name)
-=======
-	company, state := db.Auth[db.Company](requsetData.Name)
->>>>>>> 63fd6ba57a0daaf531e0867a58c619a75a7bc636
+	company, state := db.Auth[db.Company](requestData.Name)
+
 	if !state {
 		return fiber.ErrBadRequest
 	}
 
-<<<<<<< HEAD
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(requestData.Password)); err != nil {
-=======
-	if err := bcrypt.CompareHashAndPassword([]byte(company.Password), []byte(requsetData.Password)); err != nil {
->>>>>>> 63fd6ba57a0daaf531e0867a58c619a75a7bc636
+	if err := bcrypt.CompareHashAndPassword([]byte(company.Password), []byte(requestData.Password)); err != nil {
 		return fiber.ErrBadRequest
 	}
 
-	response, errs := generatTokenResponse(company.ID)
+	response, errs := generateTokenResponse(company.ID)
 	if errs[0] != nil {
 		return fiber.ErrInternalServerError
 	}
@@ -104,7 +97,7 @@ func UpdateTokensHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	response, errs := generatTokenResponse(company.ID)
+	response, errs := generateTokenResponse(company.ID)
 	if errs[0] != nil {
 		return fiber.ErrInternalServerError
 	}
@@ -188,7 +181,7 @@ func Callback(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	response, errs := generatTokenResponse(user.ID)
+	response, errs := generateTokenResponse(user.ID)
 	if errs[0] != nil {
 		return fiber.ErrInternalServerError
 	}
@@ -208,7 +201,7 @@ func Callback(c *fiber.Ctx) error {
 func AuthGoogleLoginUser(c *fiber.Ctx, userdata db.Company) (utility.JWTTokenPair, error) {
 	var refreshToken db.RefreshToken
 
-	response, errs := generatTokenResponse(userdata.ID)
+	response, errs := generateTokenResponse(userdata.ID)
 	if errs[0] != nil {
 		return utility.JWTTokenPair{}, errs[0]
 	}
@@ -225,7 +218,7 @@ func AuthGoogleLoginUser(c *fiber.Ctx, userdata db.Company) (utility.JWTTokenPai
 	return response, nil
 }
 
-func generatTokenResponse(companyID uuid.UUID) (utility.JWTTokenPair, []error) {
+func generateTokenResponse(companyID uuid.UUID) (utility.JWTTokenPair, []error) {
 
 	payload := jwt.MapClaims{
 		"sub":       companyID,
