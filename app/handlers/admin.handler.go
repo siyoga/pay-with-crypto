@@ -147,5 +147,5 @@ func SoftDeleteHandler(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	return c.Status(200).JSON(fiber.Map{"message": "User deleted from system"})
+	return c.Status(200).JSON(fiber.Map{"message": "User deleted from scope"})
 }
