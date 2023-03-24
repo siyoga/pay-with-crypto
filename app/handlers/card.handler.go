@@ -6,6 +6,7 @@ import (
 	db "pay-with-crypto/app/datastore"
 	"pay-with-crypto/app/datastore/s3"
 
+	"github.com/go-ping/ping"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
 )
@@ -45,6 +46,10 @@ func CardsSearcherByIdHandler(c *fiber.Ctx) error {
 	if id != "" {
 		if result, state = db.GetOneBy[db.Card]("id", id); !state {
 			return fiber.ErrNotFound
+		}
+		result.Views++
+		if !db.WholeOneUpdate(result) {
+			return fiber.ErrInternalServerError
 		}
 	}
 
@@ -137,6 +142,14 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 	if _, engaged := db.GetOneBy[db.Card]("name", newCard.Name); engaged {
 		return fiber.ErrConflict
 	}
+
+	pinger, err := ping.NewPinger(newCard.LinkToProd)
+	if err != nil {
+		return fiber.ErrBadRequest
+	}
+	pinger.Count = 3
+	pinger.TTL = 129
+	err = pinger.Run() // Blocks until finished
 
 	newCard.ID = uuid.Must(uuid.NewV4())
 	newCard.CompanyID = company.ID

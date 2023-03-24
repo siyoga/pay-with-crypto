@@ -51,6 +51,7 @@ type (
 		Description string         `json:"description" gorm:"type:string"`
 		Approved    string         `json:"approved" gorm:"type:string"`
 		Tags        pq.StringArray `json:"tags" gorm:"type:text[]"`
+		Views       int            `json:"views" gorm:"type:int"`
 	}
 
 	Admin struct {
@@ -71,6 +72,6 @@ type (
 	}
 
 	RefreshToken struct {
-		Token string `json:"token" gorm:"string"`
+		Token string `json:"token" gorm:"type:string"`
 	}
 )
