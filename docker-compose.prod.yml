@@ -48,7 +48,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
     ports:
-      - 8081:8081
+      - 8081:80
 
 volumes:
   minio-storage:
