@@ -9,7 +9,7 @@
         },
         "version": "1.0"
     },
-    "host": "http://localhost:8081",
+    "host": "localhost:8081",
     "paths": {
         "/admin/getForApprove": {
             "get": {
@@ -861,6 +861,12 @@
                     },
                     "404": {
                         "description": "No card",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/utility.Message"
                         }

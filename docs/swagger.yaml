@@ -91,7 +91,7 @@ definitions:
       text:
         type: string
     type: object
-host: http://localhost:8081
+host: localhost:8081
 info:
   contact: {}
   description: Nenavijy swagger
@@ -643,6 +643,10 @@ paths:
             $ref: '#/definitions/utility.Message'
         "404":
           description: No card
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
           schema:
             $ref: '#/definitions/utility.Message'
       tags:

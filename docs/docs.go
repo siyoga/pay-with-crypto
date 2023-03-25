@@ -872,6 +872,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/utility.Message"
                         }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
                     }
                 }
             }
@@ -1189,7 +1195,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "http://localhost:8081",
+	Host:             "localhost:8081",
 	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "pay-with-crypto API",

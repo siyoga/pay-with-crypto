@@ -7,6 +7,7 @@ import (
 	"pay-with-crypto/app/datastore/s3"
 	"pay-with-crypto/app/utility"
 
+	"github.com/go-ping/ping"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
 )
@@ -51,6 +52,7 @@ func CardsSearcher(c *fiber.Ctx) error {
 // @Failure 400 {object} utility.Message "Invalid request"
 // @Failure 404 {object} utility.Message "No card"
 // @Failure 403 {object} utility.Message "Card owner was banned"
+// @Failure 500 {object} utility.Message "Internal server error"
 // @Router /card/search/id [get]
 func CardsSearcherByIdHandler(c *fiber.Ctx) error {
 	var result db.Card
@@ -62,10 +64,13 @@ func CardsSearcherByIdHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request"})
 	}
 
-	if id != "" {
-		if result, state = db.GetOneBy[db.Card]("id", id); !state {
-			return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Card not exist"})
-		}
+	if result, state = db.GetOneBy[db.Card]("id", id); !state {
+		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Card not exist"})
+	}
+
+	result.Views++
+	if !db.WholeOneUpdate(result) {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
 	}
 
 	if db.IsCardOwnerSoftDeleted(result.CompanyID) {
@@ -190,6 +195,17 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 
 	if _, engaged := db.GetOneBy[db.Card]("name", newCard.Name); engaged {
 		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Card with that name already exist"})
+	}
+
+	pinger, err := ping.NewPinger(newCard.LinkToProd)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid link to company."})
+	}
+	pinger.Count = 3
+	pinger.TTL = 129
+	err = pinger.Run() // Blocks until finished
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Transmitted link does not respond."})
 	}
 
 	newCard.ID = uuid.Must(uuid.NewV4())
