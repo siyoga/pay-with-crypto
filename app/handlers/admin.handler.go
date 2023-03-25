@@ -87,6 +87,7 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 	}
 
 	admin, state := db.Auth[db.Admin](requsetData.Name)
+
 	if !state {
 		return fiber.ErrBadRequest
 	}

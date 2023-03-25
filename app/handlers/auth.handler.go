@@ -20,34 +20,34 @@ import (
 )
 
 func RegisterHandler(c *fiber.Ctx) error {
-	var user db.Company
+	var company db.Company
 
-	if err := c.BodyParser(&user); err != nil {
+	if err := c.BodyParser(&company); err != nil {
 		return fiber.ErrBadRequest
 	}
 
-	if _, engaged := db.GetOneBy[db.Company]("name", user.Name); engaged {
+	if _, exist := db.GetOneBy[db.Company]("name", company.Name); exist {
 		return fiber.ErrConflict
 	}
 
-	_, err := mail.ParseAddress(user.Mail)
+	_, err := mail.ParseAddress(company.Mail)
 	if err != nil {
 		return fiber.ErrBadRequest
 	}
 
-	user.ID = uuid.Must(uuid.NewV4())
+	company.ID = uuid.Must(uuid.NewV4())
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
+	hash, err := bcrypt.GenerateFromPassword([]byte(company.Password), 12)
 	if err != nil {
 		return fiber.ErrInternalServerError
 	}
-	user.Password = string(hash)
+	company.Password = string(hash)
 
-	if ok := db.Add(user); !ok {
+	if ok := db.Add(company); !ok {
 		return fiber.ErrInternalServerError
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(user)
+	return c.Status(fiber.StatusCreated).JSON(company)
 }
 
 func LoginHandler(c *fiber.Ctx) error {
