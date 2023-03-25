@@ -91,7 +91,7 @@ definitions:
       text:
         type: string
     type: object
-host: localhost:8081
+host: pay-with-crypto.xyz
 info:
   contact: {}
   description: Nenavijy swagger
