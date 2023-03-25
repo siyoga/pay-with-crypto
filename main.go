@@ -19,7 +19,7 @@ import (
 // @version 1.0
 // @description Nenavijy swagger
 // @license.name BSD-3
-// @host localhost:8081
+// @host pay-with-crypto.xyz
 // @securityDefinitions.apikey string
 // @in header
 // @name accessToken
