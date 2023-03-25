@@ -15,11 +15,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// @title Fiber Example API
+// @title pay-with-crypto API
 // @version 1.0
-// @description This is a sample swagger for Fiber
-// @license.name MIT
-// @host localhost:8081
+// @description Nenavijy swagger
+// @license.name BSD-3
+// @host http://localhost:8081
+// @securityDefinitions.apikey string
+// @in header
+// @name accessToken
 // @BasePath /
 func main() {
 	prod := flag.Bool("p", false, "Flag for production run")

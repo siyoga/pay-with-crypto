@@ -10,6 +10,6 @@ import (
 func CompanyController(a *fiber.App) {
 	route := a.Group("/company")
 
-	route.Get("/search/userid", handlers.CompanyGetByIdHandler)
+	route.Get("/search/id", handlers.CompanyGetByIdHandler)
 	route.Post("/uploadLogo", middleware.Auth, handlers.CompanyLogoUploaderHandler)
 }

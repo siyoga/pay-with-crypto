@@ -3,6 +3,7 @@ package middleware
 import (
 	"fmt"
 	db "pay-with-crypto/app/datastore"
+	"pay-with-crypto/app/utility"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
@@ -34,12 +35,12 @@ func Auth(c *fiber.Ctx) error {
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		userid = claims["sub"].(string)
 	} else {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Missing or malformed JWT", "data": nil})
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Missing or malformed JWT"})
 	}
 
 	result, ok := db.GetOneBy[db.Company]("id", userid)
 	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Not found user"})
+		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Not found user"})
 	}
 
 	c.Locals("company", result)
@@ -72,12 +73,12 @@ func AuthAdmin(c *fiber.Ctx) error {
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		userid = claims["sub"].(string)
 	} else {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Missing or malformed JWT", "data": nil})
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Missing or malformed JWT"})
 	}
 
 	result, ok := db.GetOneBy[db.Admin]("id", userid)
 	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Not found user"})
+		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Not found user"})
 	}
 
 	c.Locals("admin", result)

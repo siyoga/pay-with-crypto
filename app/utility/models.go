@@ -18,7 +18,7 @@ type (
 		Status bool      `json:"status" gorm:"bool"`
 	}
 
-	ErrorResponse struct {
-		Message string `json:"message"`
+	Message struct {
+		Text string `json:"text"`
 	}
 )

@@ -1,5 +1,27 @@
-basePath: /
 definitions:
+  datastore.Admin:
+    properties:
+      created_tags:
+        items:
+          $ref: '#/definitions/datastore.Tag'
+        type: array
+      createdAt:
+        description: add ``
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      updatedAt:
+        description: add ``
+        type: string
+    type: object
   datastore.Card:
     properties:
       approved:
@@ -48,45 +70,635 @@ definitions:
       password:
         type: string
     type: object
-host: localhost:8081
+  datastore.Tag:
+    properties:
+      admin_id:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  utility.JWTTokenPair:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  utility.Message:
+    properties:
+      text:
+        type: string
+    type: object
+host: http://localhost:8081
 info:
   contact: {}
-  description: This is a sample swagger for Fiber
+  description: Nenavijy swagger
   license:
-    name: MIT
-  title: Fiber Example API
+    name: BSD-3
+  title: pay-with-crypto API
   version: "1.0"
 paths:
+  /admin/getForApprove:
+    get:
+      consumes:
+      - application/json
+      description: Get cards for validate
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/datastore.Card'
+            type: array
+      security:
+      - accessToken: []
+      tags:
+      - Admin
+  /auth/admin_login:
+    post:
+      consumes:
+      - application/json
+      description: Login to admin account
+      parameters:
+      - description: Admin data
+        in: body
+        name: admin_data
+        required: true
+        schema:
+          properties:
+            name:
+              type: string
+            password:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/datastore.Admin'
+        "400":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "409":
+          description: Admin already created
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      tags:
+      - Auth
+  /auth/admin_register:
+    post:
+      consumes:
+      - application/json
+      description: Create new admin accounts tokens.
+      parameters:
+      - description: Admin data
+        in: body
+        name: admin_data
+        required: true
+        schema:
+          properties:
+            first_name:
+              type: string
+            last_name:
+              type: string
+            password:
+              type: string
+            username:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/datastore.Admin'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "409":
+          description: Admin already created
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - accessToken: []
+      tags:
+      - Auth
+  /auth/createTag:
+    post:
+      consumes:
+      - application/json
+      description: Login to admin account
+      parameters:
+      - description: Tag data
+        in: body
+        name: tag_data
+        required: true
+        schema:
+          properties:
+            name:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/datastore.Tag'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      tags:
+      - Admin
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login to company account.
+      parameters:
+      - description: Company login data
+        in: body
+        name: login_data
+        required: true
+        schema:
+          properties:
+            name:
+              type: string
+            password:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.JWTTokenPair'
+        "400":
+          description: Invalid company email
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "409":
+          description: Company already created
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      tags:
+      - Auth
   /auth/register:
     post:
       consumes:
       - application/json
       description: Create company.
       parameters:
-      - description: Company name
+      - description: Company data
         in: body
+        name: company_data
+        required: true
+        schema:
+          properties:
+            linkToCompany:
+              type: string
+            mail:
+              type: string
+            name:
+              type: string
+            password:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/datastore.Company'
+        "400":
+          description: Invalid company email
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "409":
+          description: Company already created
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      tags:
+      - Auth
+  /auth/softDelete:
+    delete:
+      consumes:
+      - application/json
+      description: Ban company account
+      parameters:
+      - description: Company data
+        in: body
+        name: company_data
+        required: true
+        schema:
+          properties:
+            id:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "404":
+          description: Company not exist
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      tags:
+      - Admin
+  /auth/token_update:
+    post:
+      consumes:
+      - application/json
+      description: Update tokens.
+      parameters:
+      - description: Refresh token
+        in: body
+        name: token
+        required: true
+        schema:
+          properties:
+            token:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.JWTTokenPair'
+        "400":
+          description: Can't update refresh token
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "409":
+          description: Token already created
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      tags:
+      - Auth
+  /auth/validateCard:
+    put:
+      consumes:
+      - application/json
+      description: Validate company card as admin
+      parameters:
+      - description: Validate data
+        in: body
+        name: validate_data
+        required: true
+        schema:
+          properties:
+            id:
+              type: string
+            status:
+              type: boolean
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      tags:
+      - Admin
+  /card/create:
+    post:
+      consumes:
+      - application/json
+      description: Card create
+      parameters:
+      - description: Card data
+        in: body
+        name: card_data
+        required: true
+        schema:
+          properties:
+            description:
+              type: string
+            linkToProd:
+              type: string
+            name:
+              type: string
+            price:
+              type: string
+            tags:
+              items:
+                type: string
+              type: array
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Card successful created
+          schema:
+            $ref: '#/definitions/datastore.Card'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "409":
+          description: Already created
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - accessToken: []
+      tags:
+      - Card
+  /card/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Card delete
+      parameters:
+      - description: Card data
+        in: body
+        name: card_data
+        required: true
+        schema:
+          properties:
+            id:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Card successful deleted
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "403":
+          description: Other owner
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "404":
+          description: No card
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - accessToken: []
+      tags:
+      - Card
+  /card/edit:
+    put:
+      consumes:
+      - application/json
+      description: Card edit
+      parameters:
+      - description: Card data
+        in: body
+        name: card_data
+        required: true
+        schema:
+          properties:
+            description:
+              type: string
+            linkToProd:
+              type: string
+            name:
+              type: string
+            price:
+              type: string
+            tags:
+              items:
+                type: string
+              type: array
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Card successful edited
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "403":
+          description: Other owner
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "404":
+          description: No card
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - accessToken: []
+      tags:
+      - Card
+  /card/getLogo:
+    get:
+      consumes:
+      - application/json
+      description: Get card logo
+      parameters:
+      - description: Card id
+        in: query
+        name: cardId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Card logo link
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "404":
+          description: No card
+          schema:
+            $ref: '#/definitions/utility.Message'
+      tags:
+      - Card
+  /card/search:
+    get:
+      consumes:
+      - application/json
+      description: Search card
+      parameters:
+      - description: Card name
+        in: query
         name: name
+        type: string
+      - description: Card tags
+        in: query
+        name: tags
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/datastore.Card'
+            type: array
+        "404":
+          description: No cards
+          schema:
+            $ref: '#/definitions/utility.Message'
+      tags:
+      - Card
+  /card/search/id:
+    get:
+      consumes:
+      - application/json
+      description: Search card by id
+      parameters:
+      - description: Card id
+        in: query
+        name: cardId
         required: true
-        schema:
-          type: string
-      - description: Company password
-        in: body
-        name: password
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/datastore.Card'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "403":
+          description: Card owner was banned
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "404":
+          description: No card
+          schema:
+            $ref: '#/definitions/utility.Message'
+      tags:
+      - Card
+  /card/uploadLogo:
+    post:
+      consumes:
+      - application/json
+      description: Card logo uploader
+      parameters:
+      - description: Card id
+        in: query
+        name: cardId
         required: true
-        schema:
-          type: string
-      - description: Company mail
-        in: body
-        name: mail
+        type: string
+      - description: Logo image
+        in: formData
+        name: cardLogo
         required: true
-        schema:
-          type: string
-      - description: Link to company website
-        in: body
-        name: linkToCompany
+        type: file
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Card successful uploaded
+        "400":
+          description: Invalid image
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "403":
+          description: Card owner was banned
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "404":
+          description: No card
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - accessToken: []
+      tags:
+      - Card
+  /company/search/id:
+    get:
+      consumes:
+      - application/json
+      description: Search company by id
+      parameters:
+      - description: Company id
+        in: query
+        name: companyId
         required: true
-        schema:
-          type: string
+        type: string
       produces:
       - application/json
       responses:
@@ -94,7 +706,51 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/datastore.Company'
-      summary: create a new company for continue work on platform
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "403":
+          description: Card owner was banned
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "404":
+          description: No card
+          schema:
+            $ref: '#/definitions/utility.Message'
       tags:
-      - Auth
+      - Company
+  /company/uploadLogo:
+    post:
+      consumes:
+      - application/json
+      description: Company logo uploader
+      parameters:
+      - description: Logo image
+        in: formData
+        name: companyLogo
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Company logo successful uploaded
+        "400":
+          description: Invalid request, provide companyLogo
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - accessToken: []
+      tags:
+      - Company
+securityDefinitions:
+  string:
+    in: header
+    name: accessToken
+    type: apiKey
 swagger: "2.0"
