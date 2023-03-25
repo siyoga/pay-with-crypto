@@ -195,8 +195,7 @@ func CardEditHandler(c *fiber.Ctx) error {
 	}
 
 	if !db.IsValid(changedCard.CompanyID, loginedCompany) {
-
-		return c.Status(200).JSON(changedCard.CompanyID)
+		return c.Status(403).JSON(changedCard.CompanyID)
 	}
 
 	if !db.WholeOneUpdate(changedCard) {

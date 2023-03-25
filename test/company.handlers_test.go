@@ -1,4 +1,4 @@
-package handlers
+package test
 
 import (
 	"bytes"
@@ -200,7 +200,7 @@ func login(testCompany db.Company, testServer *fiber.App) utility.JWTTokenPair {
 	if err != nil {
 		fmt.Println(err)
 	}
-	body, err := io.ReadAll(response.Body)
+	body, _ := io.ReadAll(response.Body)
 
 	var tokens utility.JWTTokenPair
 	_ = json.Unmarshal(body, &tokens)
