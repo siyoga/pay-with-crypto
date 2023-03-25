@@ -17,4 +17,8 @@ type (
 		ID     uuid.UUID `json:"id" gorm:"type:uuid"`
 		Status bool      `json:"status" gorm:"bool"`
 	}
+
+	ErrorResponse struct {
+		Message string `json:"message"`
+	}
 )

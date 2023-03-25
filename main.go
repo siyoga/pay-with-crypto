@@ -9,9 +9,18 @@ import (
 
 	hand "pay-with-crypto/app/handlers"
 
+	_ "pay-with-crypto/docs"
+
+	"github.com/gofiber/swagger"
 	"github.com/joho/godotenv"
 )
 
+// @title Fiber Example API
+// @version 1.0
+// @description This is a sample swagger for Fiber
+// @license.name MIT
+// @host localhost:8081
+// @BasePath /
 func main() {
 	prod := flag.Bool("p", false, "Flag for production run")
 	flag.Parse()
@@ -34,6 +43,8 @@ func main() {
 	}
 
 	server := app.Start(config)
+
+	server.Get("/swagger/*", swagger.HandlerDefault)
 
 	hand.CreateFirstAdmin()
 

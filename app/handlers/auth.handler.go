@@ -19,6 +19,21 @@ import (
 	"golang.org/x/oauth2"
 )
 
+var internalServerError = utility.ErrorResponse{Message: "Such a company is already registered."}
+
+// @Description Create company.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param name body string true "Company name"
+// @Param password body string true "Company password"
+// @Param mail body string true "Company mail"
+// @Param linkToCompany body string true "Link to company website"
+// @Success 201 {object} datastore.Company
+// @Failure 409 {object} utility.ErrorMessage "Company already created"
+// @Failure 400 {object} utility.ErrorMessage "Invalid company email"
+// @Failure 500 {object} utility.ErrorMessage "Internal server error"
+// @Router /auth/register [post]
 func RegisterHandler(c *fiber.Ctx) error {
 	var company db.Company
 
@@ -27,29 +42,40 @@ func RegisterHandler(c *fiber.Ctx) error {
 	}
 
 	if _, exist := db.GetOneBy[db.Company]("name", company.Name); exist {
-		return fiber.ErrConflict
+		return c.Status(fiber.StatusConflict).JSON(internalServerError)
 	}
 
 	_, err := mail.ParseAddress(company.Mail)
 	if err != nil {
-		return fiber.ErrBadRequest
+		return c.Status(fiber.StatusBadRequest).JSON(utility.ErrorResponse{Message: "Enter a valid email address"})
 	}
 
 	company.ID = uuid.Must(uuid.NewV4())
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(company.Password), 12)
 	if err != nil {
-		return fiber.ErrInternalServerError
+		return c.Status(fiber.StatusInternalServerError).JSON(internalServerError)
 	}
 	company.Password = string(hash)
 
 	if ok := db.Add(company); !ok {
-		return fiber.ErrInternalServerError
+		return c.Status(fiber.StatusInternalServerError).JSON(internalServerError)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(company)
 }
 
+// @Description Login to company account.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param name body string true "Company name"
+// @Param password body string true "Company password"
+// @Success 200 {object} utility.JWTTokenPair
+// @Failure 409 {object} utility.ErrorMessage "Company already created"
+// @Failure 400 {object} utility.ErrorMessage "Invalid company email"
+// @Failure 500 {object} utility.ErrorMessage "Internal server error"
+// @Router /auth/login [post]
 func LoginHandler(c *fiber.Ctx) error {
 	var requestData db.Company
 	var refreshToken db.RefreshToken
@@ -61,52 +87,63 @@ func LoginHandler(c *fiber.Ctx) error {
 	company, state := db.Auth[db.Company](requestData.Name)
 
 	if !state {
-		return fiber.ErrBadRequest
+		return c.Status(fiber.StatusBadRequest).JSON(utility.ErrorResponse{Message: "Invalid credentials"})
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(company.Password), []byte(requestData.Password)); err != nil {
-		return fiber.ErrBadRequest
+		return c.Status(fiber.StatusBadRequest).JSON(utility.ErrorResponse{Message: "Invalid credentials"})
 	}
 
 	response, errs := generateTokenResponse(company.ID)
 	if errs[0] != nil {
-		return fiber.ErrInternalServerError
+		return c.Status(fiber.StatusInternalServerError).JSON(internalServerError)
 	}
 	if errs[1] != nil {
-		return fiber.ErrInternalServerError
+		return c.Status(fiber.StatusInternalServerError).JSON(internalServerError)
 	}
 
 	refreshToken.Token = response.RefreshToken
 
 	if ok := db.Add(refreshToken); !ok {
-		return fiber.ErrBadRequest
+		return c.Status(fiber.StatusInternalServerError).JSON(internalServerError)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
+// @Description Update tokens.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param token body string true "Refresh token"
+// @Success 200 {object} utility.JWTTokenPair
+// @Failure 409 {object} utility.ErrorMessage "Token already created"
+// @Failure 400 {object} utility.ErrorMessage "Refresh token was not provided"
+// @Failure 400 {object} utility.ErrorMessage "Can't update refresh token"
+// @Failure 500 {object} utility.ErrorMessage "Internal server error"
+// @Router /auth/token_update [post]
 func UpdateTokensHandler(c *fiber.Ctx) error {
 	var refreshToken db.RefreshToken
 	company := c.Locals("company").(db.Company)
 
 	if err := c.BodyParser(&refreshToken); err != nil {
-		return fiber.ErrBadRequest
+		return c.Status(fiber.StatusBadRequest).JSON("Refresh token was not provided")
 	}
 
-	if _, state := db.GetOneBy[db.RefreshToken]("token", refreshToken.Token); !state {
-		return fiber.ErrBadRequest
+	if _, state := db.GetOneBy[db.RefreshToken]("token", refreshToken.Token); state {
+		return c.Status(fiber.StatusConflict).JSON("Such refresh token already exist")
 	}
 
 	response, errs := generateTokenResponse(company.ID)
 	if errs[0] != nil {
-		return fiber.ErrInternalServerError
+		return c.Status(fiber.StatusInternalServerError).JSON(internalServerError)
 	}
 	if errs[1] != nil {
-		return fiber.ErrInternalServerError
+		return c.Status(fiber.StatusInternalServerError).JSON(internalServerError)
 	}
 
 	if _, ok := db.UpdateOneBy[db.RefreshToken]("token", string(refreshToken.Token), "token", string(response.RefreshToken)); !ok {
-		return fiber.ErrBadRequest
+		return c.Status(fiber.StatusBadRequest).JSON("Can't update refresh token")
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)

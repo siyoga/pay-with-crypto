@@ -1,0 +1,100 @@
+basePath: /
+definitions:
+  datastore.Card:
+    properties:
+      approved:
+        type: string
+      company_id:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      linkToProd:
+        type: string
+      name:
+        type: string
+      price:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      views:
+        type: integer
+    type: object
+  datastore.Company:
+    properties:
+      cards:
+        items:
+          $ref: '#/definitions/datastore.Card'
+        type: array
+      deletedAt:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      isDel:
+        type: integer
+      linkToCompany:
+        type: string
+      mail:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost:8081
+info:
+  contact: {}
+  description: This is a sample swagger for Fiber
+  license:
+    name: MIT
+  title: Fiber Example API
+  version: "1.0"
+paths:
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create company.
+      parameters:
+      - description: Company name
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      - description: Company password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      - description: Company mail
+        in: body
+        name: mail
+        required: true
+        schema:
+          type: string
+      - description: Link to company website
+        in: body
+        name: linkToCompany
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/datastore.Company'
+      summary: create a new company for continue work on platform
+      tags:
+      - Auth
+swagger: "2.0"
