@@ -265,7 +265,7 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param card_data body object{name=string,description=string,price=string,linkToProd=string,tags=[]string} true "Card data"
+// @Param card_data body object{id=string,name=string,description=string,price=string,linkToProd=string,tags=[]string} true "Card data"
 // @Success 200 {object} utility.Message "Card successful edited"
 // @Failure 400 {object} utility.Message "Invalid request"
 // @Failure 403 {object} utility.Message "Card owner was banned"
