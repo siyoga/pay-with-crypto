@@ -29,11 +29,11 @@ func CardsSearcher(c *fiber.Ctx) error {
 	tags := c.Query("tags")
 
 	if name != "" && tags != "" {
-		result, state, _ = db.SearchCard(name, tags)
+		result, state = db.SearchCard(name, tags)
 	} else if name != "" {
-		result, state, _ = db.SearchCardByName(name)
+		result, state = db.SearchCardByName(name)
 	} else if tags != "" {
-		result, state, _ = db.SearchCardsByTags(tags)
+		result, state = db.SearchCardsByTags(tags)
 	}
 
 	if !state {

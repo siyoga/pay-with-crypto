@@ -29,7 +29,7 @@ func CompanyGetByIdHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request"})
 	}
 
-	company, state = db.GetCompanyById(companyId)
+	company, state = db.GetUserById(companyId)
 
 	if !state {
 		if _, state = db.GetOneUnscopedBy[db.Card]("id", companyId); state {

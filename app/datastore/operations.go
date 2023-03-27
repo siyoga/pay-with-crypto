@@ -152,7 +152,7 @@ func DeleteBy[T All](key string, value any) bool {
 }
 
 func UnscopeCompanyByIdWithCards(companyID uuid.UUID) bool {
-	company, _ := GetCompanyById(companyID.String())
+	company, _ := GetUserById(companyID.String())
 
 	if len(company.Cards) > 0 {
 		for _, card := range company.Cards {
@@ -207,11 +207,9 @@ func Auth[T Authable](name string) (T, bool) {
 	return item, true
 }
 
-func SearchCardByName(value string) ([]Card, bool, bool) {
+func SearchCardByName(value string) ([]Card, bool) {
 	var cards []Card
-	var unscopedCards []Card
 	var state bool
-	var hasUnscopedCards bool = false
 
 	if result := Datastore.Where("name LIKE ?", "%"+value+"%").Find(&cards); result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
@@ -220,27 +218,12 @@ func SearchCardByName(value string) ([]Card, bool, bool) {
 		state = false
 	}
 
-	if result := Datastore.Unscoped().Where("name LIKE ?", "%"+value+"%").Find(&unscopedCards); result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "SearchCardByName")
-		}
-		state = false
-	}
-
-	if len(unscopedCards) > 0 {
-		hasUnscopedCards = true
-	}
-
-	state = true
-
-	return cards, state, hasUnscopedCards
+	return cards, state
 }
 
-func SearchCard(name string, tags string) ([]Card, bool, bool) {
+func SearchCard(name string, tags string) ([]Card, bool) {
 	var cards []Card
-	var unscopedCards []Card
 	var state bool
-	var hasUnscopedCards bool = false
 
 	splitedTags := pq.StringArray(strings.Split(tags, "&"))
 
@@ -251,27 +234,14 @@ func SearchCard(name string, tags string) ([]Card, bool, bool) {
 		state = false
 	}
 
-	if result := Datastore.Unscoped().Where("name LIKE ? AND Tags && ?", "%"+name+"%", splitedTags).Find(&unscopedCards); result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "SearchCard")
-		}
-		state = false
-	}
-
-	if len(unscopedCards) > 0 {
-		hasUnscopedCards = true
-	}
-
 	state = true
 
-	return cards, state, hasUnscopedCards
+	return cards, state
 }
 
-func SearchCardsByTags(rawTags string) ([]Card, bool, bool) {
+func SearchCardsByTags(rawTags string) ([]Card, bool) {
 	var cards []Card
-	var unscopedCards []Card
 	var state bool
-	var hasUnscopedCards bool = false
 
 	splitedTags := pq.StringArray(strings.Split(rawTags, "&"))
 
@@ -283,25 +253,13 @@ func SearchCardsByTags(rawTags string) ([]Card, bool, bool) {
 		state = false
 	}
 
-	if result := Datastore.Unscoped().Where("Tags && ?", splitedTags).Find(&unscopedCards); result.Error != nil {
-		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "SearchCardsByTags")
-		}
-
-		state = false
-	}
-
-	if len(unscopedCards) > 0 {
-		hasUnscopedCards = true
-	}
-
 	state = true
 
-	return cards, state, hasUnscopedCards
+	return cards, state
 }
 
 // Эту функцию не меняй на дженерик
-func GetCompanyById(companyId string) (Company, bool) {
+func GetUserById(companyId string) (Company, bool) {
 	var company Company
 
 	result := Datastore.Model(Company{}).Where(map[string]interface{}{"id": companyId}).Preload("Cards").First(&company)
@@ -321,7 +279,7 @@ func GetUnscopedCompanyById(companyId string) (Company, bool) {
 	result := Datastore.Model(Company{}).Unscoped().Where(map[string]interface{}{"id": companyId}).First(&company)
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "GetUserById")
+			util.Error(result.Error, "GetUnscopedCompanyById")
 		}
 		return company, false
 

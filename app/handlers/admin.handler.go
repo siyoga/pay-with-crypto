@@ -198,7 +198,7 @@ func ValidateCard(c *fiber.Ctx) error {
 // @Failure 404 {object} utility.Message "Company not exist"
 // @Failure 500 {object} utility.Message "Internal server error"
 // @Router /auth/softDelete [delete]
-func BanCompanyHandler(c *fiber.Ctx) error {
+func SoftDeleteHandler(c *fiber.Ctx) error {
 	var company db.Company
 	var state bool
 
