@@ -977,7 +977,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Company id",
-                        "name": "companyId",
+                        "name": "id",
                         "in": "query",
                         "required": true
                     }

@@ -13,7 +13,7 @@ import (
 // @Tags Company
 // @Accept json
 // @Produce json
-// @Param companyId query string true "Company id"
+// @Param id query string true "Company id"
 // @Success 200 {object} datastore.Company
 // @Failure 400 {object} utility.Message "Invalid request"
 // @Failure 404 {object} utility.Message "No card"

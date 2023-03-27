@@ -707,7 +707,7 @@ paths:
       parameters:
       - description: Company id
         in: query
-        name: companyId
+        name: id
         required: true
         type: string
       produces:
