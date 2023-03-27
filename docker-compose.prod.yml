@@ -8,6 +8,8 @@ services:
       - app-network
     ports:
       - '5432:5432'
+    volumes:
+      - db-storage:/data
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_DB=${DATABASE_NAME}
@@ -52,6 +54,7 @@ services:
 
 volumes:
   minio-storage:
+  db-storage:
 
 networks:
   app-network:

@@ -61,7 +61,7 @@ func GetCardsForApprove(c *fiber.Ctx) error {
 	return c.Status(200).JSON(cards)
 }
 
-// @Description Login to admin account
+// @Description Create new tag for cards
 // @Tags Admin
 // @Accept json
 // @Produce json
@@ -70,7 +70,7 @@ func GetCardsForApprove(c *fiber.Ctx) error {
 // @Success 201 {object} datastore.Tag
 // @Failure 400 {object} utility.Message "Invalid request body"
 // @Failure 500 {object} utility.Message "Internal server error"
-// @Router /auth/createTag [post]
+// @Router /admin/createTag [post]
 func TagCreateHandler(c *fiber.Ctx) error {
 	var newTag db.Tag
 	admin := c.Locals("admin").(db.Admin)
@@ -160,7 +160,7 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 // @Success 200 {object} utility.Message
 // @Failure 400 {object} utility.Message "Invalid request body"
 // @Failure 500 {object} utility.Message "Internal server error"
-// @Router /auth/validateCard [put]
+// @Router /admin/validateCard [put]
 func ValidateCard(c *fiber.Ctx) error {
 	var body utility.Status
 	var response string
@@ -200,7 +200,7 @@ func ValidateCard(c *fiber.Ctx) error {
 // @Failure 400 {object} utility.Message "Invalid request body"
 // @Failure 404 {object} utility.Message "Company not exist"
 // @Failure 500 {object} utility.Message "Internal server error"
-// @Router /auth/softDelete [delete]
+// @Router /admin/softDelete [delete]
 func SoftDeleteHandler(c *fiber.Ctx) error {
 	var company db.Company
 	var state bool
