@@ -101,6 +101,40 @@ info:
   title: pay-with-crypto API
   version: "1.0"
 paths:
+  /admin/createTag:
+    post:
+      consumes:
+      - application/json
+      description: Create new tag for cards
+      parameters:
+      - description: Tag data
+        in: body
+        name: tag_data
+        required: true
+        schema:
+          properties:
+            name:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/datastore.Tag'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Admin
   /admin/getForApprove:
     get:
       consumes:
@@ -115,6 +149,80 @@ paths:
             items:
               $ref: '#/definitions/datastore.Card'
             type: array
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Admin
+  /admin/softDelete:
+    delete:
+      consumes:
+      - application/json
+      description: Ban company account
+      parameters:
+      - description: Company data
+        in: body
+        name: company_data
+        required: true
+        schema:
+          properties:
+            id:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "404":
+          description: Company not exist
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Admin
+  /admin/validateCard:
+    put:
+      consumes:
+      - application/json
+      description: Validate company card as admin
+      parameters:
+      - description: Validate data
+        in: body
+        name: validate_data
+        required: true
+        schema:
+          properties:
+            id:
+              type: string
+            status:
+              type: boolean
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
       security:
       - ApiKeyAuth: []
       tags:
@@ -201,40 +309,6 @@ paths:
       - ApiKeyAuth: []
       tags:
       - Auth
-  /auth/createTag:
-    post:
-      consumes:
-      - application/json
-      description: Login to admin account
-      parameters:
-      - description: Tag data
-        in: body
-        name: tag_data
-        required: true
-        schema:
-          properties:
-            name:
-              type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/datastore.Tag'
-        "400":
-          description: Invalid request body
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/utility.Message'
-      security:
-      - ApiKeyAuth: []
-      tags:
-      - Admin
   /auth/login:
     post:
       consumes:
@@ -315,44 +389,6 @@ paths:
             $ref: '#/definitions/utility.Message'
       tags:
       - Auth
-  /auth/softDelete:
-    delete:
-      consumes:
-      - application/json
-      description: Ban company account
-      parameters:
-      - description: Company data
-        in: body
-        name: company_data
-        required: true
-        schema:
-          properties:
-            id:
-              type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "400":
-          description: Invalid request body
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "404":
-          description: Company not exist
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/utility.Message'
-      security:
-      - ApiKeyAuth: []
-      tags:
-      - Admin
   /auth/token_update:
     post:
       consumes:
@@ -389,42 +425,6 @@ paths:
             $ref: '#/definitions/utility.Message'
       tags:
       - Auth
-  /auth/validateCard:
-    put:
-      consumes:
-      - application/json
-      description: Validate company card as admin
-      parameters:
-      - description: Validate data
-        in: body
-        name: validate_data
-        required: true
-        schema:
-          properties:
-            id:
-              type: string
-            status:
-              type: boolean
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "400":
-          description: Invalid request body
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/utility.Message'
-      security:
-      - ApiKeyAuth: []
-      tags:
-      - Admin
   /card/create:
     post:
       consumes:
