@@ -753,7 +753,7 @@ paths:
       tags:
       - Company
 securityDefinitions:
-  string:
+  ApiKeyAuth:
     in: header
     name: accessToken
     type: apiKey

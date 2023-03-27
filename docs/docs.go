@@ -1184,7 +1184,7 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "string": {
+        "ApiKeyAuth": {
             "type": "apiKey",
             "name": "accessToken",
             "in": "header"
