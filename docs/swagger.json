@@ -10,12 +10,13 @@
         "version": "1.0"
     },
     "host": "pay-with-crypto.xyz",
+    "basePath": "/",
     "paths": {
         "/admin/getForApprove": {
             "get": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Get cards for validate",
@@ -104,7 +105,7 @@
             "post": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Create new admin accounts tokens.",
@@ -172,6 +173,11 @@
         },
         "/auth/createTag": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Login to admin account",
                 "consumes": [
                     "application/json"
@@ -346,6 +352,11 @@
         },
         "/auth/softDelete": {
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Ban company account",
                 "consumes": [
                     "application/json"
@@ -458,6 +469,11 @@
         },
         "/auth/validateCard": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Validate company card as admin",
                 "consumes": [
                     "application/json"
@@ -513,7 +529,7 @@
             "post": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Card create",
@@ -589,7 +605,7 @@
             "delete": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Card delete",
@@ -653,7 +669,7 @@
             "put": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Card edit",
@@ -878,7 +894,7 @@
             "post": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Card logo uploader",
@@ -992,6 +1008,9 @@
                 "security": [
                     {
                         "accessToken": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Company logo uploader",

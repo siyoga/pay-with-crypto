@@ -117,7 +117,7 @@ func CardLogoGetterHandler(c *fiber.Ctx) error {
 // @Tags Card
 // @Accept json
 // @Produce json
-// @Security accessToken
+// @Security ApiKeyAuth
 // @Param cardId query string true "Card id"
 // @Param cardLogo formData file true "Logo image"
 // @Success 204 "Card successful uploaded"
@@ -178,7 +178,7 @@ func CardLogoUploaderHandler(c *fiber.Ctx) error {
 // @Tags Card
 // @Accept json
 // @Produce json
-// @Security accessToken
+// @Security ApiKeyAuth
 // @Param card_data body object{name=string,description=string,price=string,linkToProd=string,tags=[]string} true "Card data"
 // @Success 201 {object} datastore.Card "Card successful created"
 // @Failure 400 {object} utility.Message "Invalid request"
@@ -223,7 +223,7 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 // @Tags Card
 // @Accept json
 // @Produce json
-// @Security accessToken
+// @Security ApiKeyAuth
 // @Param card_data body object{id=string} true "Card data"
 // @Success 204 "Card successful deleted"
 // @Failure 400 {object} utility.Message "Invalid request"
@@ -264,7 +264,7 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 // @Tags Card
 // @Accept json
 // @Produce json
-// @Security accessToken
+// @Security ApiKeyAuth
 // @Param card_data body object{name=string,description=string,price=string,linkToProd=string,tags=[]string} true "Card data"
 // @Success 200 {object} utility.Message "Card successful edited"
 // @Failure 400 {object} utility.Message "Invalid request"

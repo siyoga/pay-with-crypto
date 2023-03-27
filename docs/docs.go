@@ -23,7 +23,7 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Get cards for validate",
@@ -112,7 +112,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Create new admin accounts tokens.",
@@ -180,6 +180,11 @@ const docTemplate = `{
         },
         "/auth/createTag": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Login to admin account",
                 "consumes": [
                     "application/json"
@@ -354,6 +359,11 @@ const docTemplate = `{
         },
         "/auth/softDelete": {
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Ban company account",
                 "consumes": [
                     "application/json"
@@ -466,6 +476,11 @@ const docTemplate = `{
         },
         "/auth/validateCard": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Validate company card as admin",
                 "consumes": [
                     "application/json"
@@ -521,7 +536,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Card create",
@@ -597,7 +612,7 @@ const docTemplate = `{
             "delete": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Card delete",
@@ -661,7 +676,7 @@ const docTemplate = `{
             "put": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Card edit",
@@ -886,7 +901,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Card logo uploader",
@@ -1000,6 +1015,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "accessToken": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Company logo uploader",
@@ -1196,7 +1214,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "pay-with-crypto.xyz",
-	BasePath:         "",
+	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "pay-with-crypto API",
 	Description:      "Nenavijy swagger",

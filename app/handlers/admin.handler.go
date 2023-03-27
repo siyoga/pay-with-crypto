@@ -16,7 +16,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param admin_data body object{username=string,first_name=string,last_name=string,password=string} true "Admin data"
-// @Security accessToken
+// @Security ApiKeyAuth
 // @Success 200 {object} datastore.Admin
 // @Failure 409 {object} utility.Message "Admin already created"
 // @Failure 400 {object} utility.Message "Invalid request body"
@@ -52,7 +52,7 @@ func AdminRegisterHandler(c *fiber.Ctx) error {
 // @Tags Admin
 // @Accept json
 // @Produce json
-// @Security accessToken
+// @Security ApiKeyAuth
 // @Success 200 {object} []datastore.Card
 // @Router /admin/getForApprove [get]
 func GetCardsForApprove(c *fiber.Ctx) error {
@@ -65,6 +65,7 @@ func GetCardsForApprove(c *fiber.Ctx) error {
 // @Tags Admin
 // @Accept json
 // @Produce json
+// @Security ApiKeyAuth
 // @Param tag_data body object{name=string} true "Tag data"
 // @Success 201 {object} datastore.Tag
 // @Failure 400 {object} utility.Message "Invalid request body"
@@ -154,6 +155,7 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 // @Tags Admin
 // @Accept json
 // @Produce json
+// @Security ApiKeyAuth
 // @Param validate_data body object{id=string,status=bool} true "Validate data"
 // @Success 200 {object} utility.Message
 // @Failure 400 {object} utility.Message "Invalid request body"
@@ -192,6 +194,7 @@ func ValidateCard(c *fiber.Ctx) error {
 // @Tags Admin
 // @Accept json
 // @Produce json
+// @Security ApiKeyAuth
 // @Param company_data body object{id=string} true "Company data"
 // @Success 200 {object} utility.Message
 // @Failure 400 {object} utility.Message "Invalid request body"

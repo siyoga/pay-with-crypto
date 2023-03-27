@@ -20,10 +20,10 @@ import (
 // @description Nenavijy swagger
 // @license.name BSD-3
 // @host pay-with-crypto.xyz
+// @BasePath /
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name accessToken
-// @BasePath /
 func main() {
 	prod := flag.Bool("p", false, "Flag for production run")
 	flag.Parse()
