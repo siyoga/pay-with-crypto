@@ -15,6 +15,7 @@ func Start(config db.DatabaseConfig) *fiber.App {
 	controllers.CardController(app)
 	controllers.CompanyController(app)
 	controllers.AdminController(app)
+	controllers.FirstPageController(app)
 
 	db.New(fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", config.Host, config.User, config.Password, config.Database))
 

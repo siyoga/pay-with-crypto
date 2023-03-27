@@ -70,6 +70,22 @@ func GetManyBy[T All](key string, value interface{}) ([]T, bool) { // used in ha
 	return items, true
 }
 
+func GetAllOrdered[T All](key string, value interface{}, order string) ([]T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
+	var items []T
+
+	result := Datastore.Where(map[string]interface{}{key: value}).Order(order).Find(&items)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			util.Error(result.Error, "GetAllCards")
+		}
+
+		return items, false
+	}
+
+	return items, true
+}
+
 func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newValue string) (T, bool) {
 	var i T
 
