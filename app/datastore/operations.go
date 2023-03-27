@@ -38,10 +38,27 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 	return i, true
 }
 
-func GetOneUnscopedBy[T All](key string, value interface{}) (T, bool) {
+func GetOneUnscopedBy[T All](key string, value interface{}) (T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
 	var i T
 
 	result := Datastore.Unscoped().Where(map[string]interface{}{key: value}).First(&i)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
+			util.Error(result.Error, "GetUnscopedOneBy")
+		}
+
+		return i, false
+
+	}
+
+	return i, true
+}
+
+func GetUnscopedBy[T All](key string, value interface{}) ([]T, bool) {
+	var i []T
+
+	result := Datastore.Unscoped().Where(map[string]interface{}{key: value}).Find(&i)
 
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
@@ -70,10 +87,26 @@ func GetManyBy[T All](key string, value interface{}) ([]T, bool) { // used in ha
 	return items, true
 }
 
-func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newValue string) (T, bool) {
+func UpdateOneBy[T All](key string, value interface{}, updatedKey string, newValue interface{}) (T, bool) {
 	var i T
 
 	result := Datastore.Model(&i).Where(map[string]interface{}{key: value}).Update(updatedKey, newValue)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
+			util.Error(result.Error, "UpdateOneBy")
+		}
+
+		return i, false
+	}
+
+	return i, true
+}
+
+func UpdateOneUnscopedBy[T All](key string, value interface{}, updatedKey string, newValue interface{}) (T, bool) {
+	var i T
+
+	result := Datastore.Model(&i).Unscoped().Where(map[string]interface{}{key: value}).Update(updatedKey, newValue)
 
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
@@ -118,6 +151,48 @@ func DeleteBy[T All](key string, value any) bool {
 	return state
 }
 
+func UnscopeCompanyByIdWithCards(companyID uuid.UUID) bool {
+	company, _ := GetCompanyById(companyID.String())
+
+	if len(company.Cards) > 0 {
+		for _, card := range company.Cards {
+			if ok := DeleteBy[Card]("id", &card.ID); !ok {
+				return false
+			}
+		}
+	}
+
+	result := Datastore.Model(&company).Where(map[string]interface{}{"id": company.ID}).Delete(&company)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "UnscopeCompanyByIdWithCards")
+		}
+		return false
+	}
+
+	return true
+}
+
+func ScopeCompanyByIdWithCards(companyID uuid.UUID) bool {
+	company, _ := GetUnscopedCompanyById(companyID.String())
+
+	if _, ok := UpdateOneUnscopedBy[Company]("id", company.ID, "is_del", 0); !ok {
+		return false
+	}
+
+	cards, _ := GetUnscopedBy[Card]("company_id", company.ID)
+	if len(cards) > 0 {
+		for _, card := range cards {
+
+			if _, ok := UpdateOneUnscopedBy[Card]("id", card.ID, "is_del", 0); !ok {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
 func Auth[T Authable](name string) (T, bool) {
 	var item T
 
@@ -132,68 +207,126 @@ func Auth[T Authable](name string) (T, bool) {
 	return item, true
 }
 
-func SearchCardByName(value string) ([]Card, bool) {
+func SearchCardByName(value string) ([]Card, bool, bool) {
 	var cards []Card
+	var unscopedCards []Card
+	var state bool
+	var hasUnscopedCards bool = false
 
-	result := Datastore.Where("name LIKE ?", "%"+value+"%").Find(&cards)
-
-	if result.Error != nil {
+	if result := Datastore.Where("name LIKE ?", "%"+value+"%").Find(&cards); result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "SearchCardByName")
 		}
-
-		return cards, false
+		state = false
 	}
 
-	return cards, true
+	if result := Datastore.Unscoped().Where("name LIKE ?", "%"+value+"%").Find(&unscopedCards); result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "SearchCardByName")
+		}
+		state = false
+	}
+
+	if len(unscopedCards) > 0 {
+		hasUnscopedCards = true
+	}
+
+	state = true
+
+	return cards, state, hasUnscopedCards
 }
 
-func SearchCard(name string, tags string) ([]Card, bool) {
+func SearchCard(name string, tags string) ([]Card, bool, bool) {
 	var cards []Card
+	var unscopedCards []Card
+	var state bool
+	var hasUnscopedCards bool = false
 
 	splitedTags := pq.StringArray(strings.Split(tags, "&"))
 
-	result := Datastore.Where("name LIKE ? AND Tags && ?", "%"+name+"%", splitedTags).Find(&cards)
-
-	if result.Error != nil {
+	if result := Datastore.Where("name LIKE ? AND Tags && ?", "%"+name+"%", splitedTags).Find(&cards); result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
-			util.Error(result.Error, "Search")
+			util.Error(result.Error, "SearchCard")
 		}
-		return cards, false
+		state = false
 	}
-	return cards, true
+
+	if result := Datastore.Unscoped().Where("name LIKE ? AND Tags && ?", "%"+name+"%", splitedTags).Find(&unscopedCards); result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "SearchCard")
+		}
+		state = false
+	}
+
+	if len(unscopedCards) > 0 {
+		hasUnscopedCards = true
+	}
+
+	state = true
+
+	return cards, state, hasUnscopedCards
 }
 
-func SearchCardsByTags(rawTags string) ([]Card, bool) {
+func SearchCardsByTags(rawTags string) ([]Card, bool, bool) {
 	var cards []Card
+	var unscopedCards []Card
+	var state bool
+	var hasUnscopedCards bool = false
 
 	splitedTags := pq.StringArray(strings.Split(rawTags, "&"))
 
-	result := Datastore.Where("Tags && ?", splitedTags).Find(&cards)
-	if result.Error != nil {
+	if result := Datastore.Where("Tags && ?", splitedTags).Find(&cards); result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "SearchCardsByTags")
 		}
 
-		return cards, false
+		state = false
 	}
 
-	return cards, true
+	if result := Datastore.Unscoped().Where("Tags && ?", splitedTags).Find(&unscopedCards); result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "SearchCardsByTags")
+		}
+
+		state = false
+	}
+
+	if len(unscopedCards) > 0 {
+		hasUnscopedCards = true
+	}
+
+	state = true
+
+	return cards, state, hasUnscopedCards
 }
 
 // Эту функцию не меняй на дженерик
-func GetUserById(userId string) (Company, bool) {
-	var user Company
+func GetCompanyById(companyId string) (Company, bool) {
+	var company Company
 
-	result := Datastore.Model(Company{}).Where(map[string]interface{}{"id": userId}).Preload("Cards").First(&user)
+	result := Datastore.Model(Company{}).Where(map[string]interface{}{"id": companyId}).Preload("Cards").First(&company)
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "GetUserById")
 		}
-		return user, false
+		return company, false
 
 	}
-	return user, true
+	return company, true
+}
+
+func GetUnscopedCompanyById(companyId string) (Company, bool) {
+	var company Company
+
+	result := Datastore.Model(Company{}).Unscoped().Where(map[string]interface{}{"id": companyId}).First(&company)
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
+			util.Error(result.Error, "GetUserById")
+		}
+		return company, false
+
+	}
+	return company, true
 }
 
 func IsValid[T comparable](firstItem T, secondItem T) bool {
@@ -210,14 +343,4 @@ func AdminCheck() bool {
 		empty = true
 	}
 	return empty
-}
-
-func IsCardOwnerSoftDeleted(cardId uuid.UUID) bool {
-	if _, state := GetOneBy[Company]("id", cardId); !state {
-		if _, state := GetOneUnscopedBy[Company]("id", cardId); state {
-			return true
-		}
-		return false
-	}
-	return false
 }
