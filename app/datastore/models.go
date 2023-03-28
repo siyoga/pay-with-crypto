@@ -33,7 +33,7 @@ type (
 		ID            uuid.UUID             `json:"id" gorm:"type:uuid"`
 		Name          string                `json:"name" gorm:"type:string;unique"`
 		Image         string                `json:"image" gorm:"type:string"`
-		Password      string                `json:"password" gorm:"type:string"`
+		Password      string                `json:"-" gorm:"type:string"`
 		Mail          string                `json:"mail" gorm:"type:string"`
 		LinkToCompany string                `json:"linkToCompany" gorm:"type:string"`
 		Cards         []Card                `json:"cards" gorm:"foreignKey:CompanyID"`
@@ -61,7 +61,7 @@ type (
 		Name        string    `json:"name" gorm:"type:string;unique"`
 		FirstName   string    `json:"first_name" gorm:"type:string"`
 		LastName    string    `json:"last_name" gorm:"type:string"`
-		Password    string    `json:"password" gorm:"type:string"`
+		Password    string    `json:"-" gorm:"type:string"`
 		CreatedTags []Tag     `json:"created_tags" gorm:"foreignKey:AdminID"`
 		CreatedAt   time.Time //add ``
 		UpdatedAt   time.Time //add ``
