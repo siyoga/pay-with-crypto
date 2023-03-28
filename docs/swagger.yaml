@@ -17,8 +17,6 @@ definitions:
         type: string
       name:
         type: string
-      password:
-        type: string
       updatedAt:
         description: add ``
         type: string
@@ -29,12 +27,16 @@ definitions:
         type: string
       company_id:
         type: string
+      deletedAt:
+        type: string
       description:
         type: string
       id:
         type: string
       image:
         type: string
+      is_del:
+        type: integer
       linkToProd:
         type: string
       name:
@@ -60,15 +62,13 @@ definitions:
         type: string
       image:
         type: string
-      isDel:
+      is_del:
         type: integer
       linkToCompany:
         type: string
       mail:
         type: string
       name:
-        type: string
-      password:
         type: string
     type: object
   datastore.Tag:
@@ -526,6 +526,8 @@ paths:
         schema:
           properties:
             description:
+              type: string
+            id:
               type: string
             linkToProd:
               type: string

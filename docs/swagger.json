@@ -694,6 +694,9 @@
                                 "description": {
                                     "type": "string"
                                 },
+                                "id": {
+                                    "type": "string"
+                                },
                                 "linkToProd": {
                                     "type": "string"
                                 },
@@ -1078,9 +1081,6 @@
                 "name": {
                     "type": "string"
                 },
-                "password": {
-                    "type": "string"
-                },
                 "updatedAt": {
                     "description": "add ``",
                     "type": "string"
@@ -1096,6 +1096,9 @@
                 "company_id": {
                     "type": "string"
                 },
+                "deletedAt": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -1104,6 +1107,9 @@
                 },
                 "image": {
                     "type": "string"
+                },
+                "is_del": {
+                    "type": "integer"
                 },
                 "linkToProd": {
                     "type": "string"
@@ -1143,7 +1149,7 @@
                 "image": {
                     "type": "string"
                 },
-                "isDel": {
+                "is_del": {
                     "type": "integer"
                 },
                 "linkToCompany": {
@@ -1153,9 +1159,6 @@
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "password": {
                     "type": "string"
                 }
             }

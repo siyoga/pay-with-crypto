@@ -701,6 +701,9 @@ const docTemplate = `{
                                 "description": {
                                     "type": "string"
                                 },
+                                "id": {
+                                    "type": "string"
+                                },
                                 "linkToProd": {
                                     "type": "string"
                                 },
@@ -1085,9 +1088,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "password": {
-                    "type": "string"
-                },
                 "updatedAt": {
                     "description": "add ` + "`" + `` + "`" + `",
                     "type": "string"
@@ -1103,6 +1103,9 @@ const docTemplate = `{
                 "company_id": {
                     "type": "string"
                 },
+                "deletedAt": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -1111,6 +1114,9 @@ const docTemplate = `{
                 },
                 "image": {
                     "type": "string"
+                },
+                "is_del": {
+                    "type": "integer"
                 },
                 "linkToProd": {
                     "type": "string"
@@ -1150,7 +1156,7 @@ const docTemplate = `{
                 "image": {
                     "type": "string"
                 },
-                "isDel": {
+                "is_del": {
                     "type": "integer"
                 },
                 "linkToCompany": {
@@ -1160,9 +1166,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "password": {
                     "type": "string"
                 }
             }
