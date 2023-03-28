@@ -65,16 +65,16 @@ func CardsSearcherByIdHandler(c *fiber.Ctx) error {
 	}
 
 	if result, state = db.GetOneBy[db.Card]("id", id); !state {
+		if result, state = db.GetOneUnscopedBy[db.Card]("id", id); state {
+			return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "Owner of card was banned"})
+		}
 		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Card not exist"})
 	}
 
 	result.Views++
+
 	if !db.WholeOneUpdate(result) {
 		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
-	}
-
-	if db.IsCardOwnerSoftDeleted(result.CompanyID) {
-		return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "The account holding that card has been deleted."})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(result)
@@ -99,6 +99,9 @@ func CardLogoGetterHandler(c *fiber.Ctx) error {
 	card, state := db.GetOneBy[db.Card]("id", cardId)
 
 	if !state {
+		if _, state = db.GetOneUnscopedBy[db.Card]("id", cardId); state {
+			return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "Owner of card was banned"})
+		}
 		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Card not exist"})
 	}
 
@@ -131,19 +134,17 @@ func CardLogoUploaderHandler(c *fiber.Ctx) error {
 	logoBucket := os.Getenv("S3_BUCKET_CARD_LOGO")
 	cardLogo, err := c.FormFile("cardLogo")
 	cardId := c.Query("cardId")
-	var card db.Card
 	var state bool
 
 	if cardId == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request, provide cardId"})
 	}
 
-	if card, state = db.GetOneBy[db.Card]("id", cardId); !state {
+	if _, state = db.GetOneBy[db.Card]("id", cardId); !state {
+		if _, state = db.GetOneUnscopedBy[db.Card]("id", cardId); state {
+			return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "Owner of card was banned"})
+		}
 		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Card not exist"})
-	}
-
-	if db.IsCardOwnerSoftDeleted(card.CompanyID) {
-		return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "The account holding that card has been deleted."})
 	}
 
 	if err != nil {
@@ -242,11 +243,10 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 	}
 
 	if card, state = db.GetOneBy[db.Card]("id", card.ID); !state {
+		if _, state = db.GetOneUnscopedBy[db.Card]("id", card.ID); state {
+			return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "Owner of card was banned"})
+		}
 		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Card not exist"})
-	}
-
-	if db.IsCardOwnerSoftDeleted(card.CompanyID) {
-		return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "The account holding that card has been deleted."})
 	}
 
 	if !db.IsValid(card.CompanyID, loginedUser) {
@@ -283,11 +283,10 @@ func CardEditHandler(c *fiber.Ctx) error {
 	}
 
 	if changedCard, state = db.GetOneBy[db.Card]("id", changedCard.ID); !state {
+		if _, state = db.GetOneUnscopedBy[db.Card]("id", changedCard.ID); state {
+			return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "Owner of card was banned"})
+		}
 		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Card not exist"})
-	}
-
-	if db.IsCardOwnerSoftDeleted(changedCard.CompanyID) {
-		return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "The account holding that card has been deleted."})
 	}
 
 	if !db.IsValid(changedCard.CompanyID, loginedCompany) {

@@ -213,9 +213,25 @@ func SoftDeleteHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Such a company does not exist"})
 	}
 
-	if state = db.DeleteBy[db.Company]("id", company.ID); !state {
+	if state = db.UnscopeCompanyByIdWithCards(company.ID); !state {
 		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
 	}
 
-	return c.Status(200).JSON(utility.Message{Text: "User deleted from scope."})
+	return c.Status(200).JSON(utility.Message{Text: "Company and card of this company deleted from scope."})
+}
+
+func UnbanCompanyHandler(c *fiber.Ctx) error {
+	var company db.Company
+	var state bool
+
+	if err := c.BodyParser(&company); err != nil {
+		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Invalid request body"})
+	}
+
+	if state = db.ScopeCompanyByIdWithCards(company.ID); !state {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+	}
+
+	return c.Status(200).JSON(utility.Message{Text: "Company and card of this company added to scope."})
+
 }

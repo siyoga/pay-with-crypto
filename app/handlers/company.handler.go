@@ -32,7 +32,10 @@ func CompanyGetByIdHandler(c *fiber.Ctx) error {
 	company, state = db.GetUserById(companyId)
 
 	if !state {
-		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Card not exist"})
+		if _, state = db.GetOneUnscopedBy[db.Card]("id", companyId); state {
+			return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "Owner of card was banned"})
+		}
+		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Company not exist"})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(company)
