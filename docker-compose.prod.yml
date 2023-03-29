@@ -22,8 +22,8 @@ services:
     networks:
       - app-network
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '9050:9000'
+      - '9051:9001'
     environment:
       - MINIO_ROOT_USER=${S3_USER}
       - MINIO_ROOT_PASSWORD=${S3_PASSWORD}
