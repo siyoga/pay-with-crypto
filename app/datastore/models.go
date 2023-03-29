@@ -39,6 +39,7 @@ type (
 		Cards         []Card                `json:"cards" gorm:"foreignKey:CompanyID"`
 		DeletedAt     time.Time             `json:"deletedAt" gorm:"type:time"`
 		IsDel         soft_delete.DeletedAt `json:"is_del" gorm:"softDelete:flag,DeletedAtField:DeletedAt"`
+		CreatedTags   []Tag                 `json:"created_tags" gorm:"foreignKey:CreatorID"`
 	}
 
 	Card struct {
@@ -61,16 +62,17 @@ type (
 		Name        string    `json:"name" gorm:"type:string;unique"`
 		FirstName   string    `json:"first_name" gorm:"type:string"`
 		LastName    string    `json:"last_name" gorm:"type:string"`
-		Password    string    `json:"-" gorm:"type:string"`
-		CreatedTags []Tag     `json:"created_tags" gorm:"foreignKey:AdminID"`
+		Password    string    `json:"password" gorm:"type:string"`
+		CreatedTags []Tag     `json:"created_tags" gorm:"foreignKey:CreatorID"`
 		CreatedAt   time.Time //add ``
 		UpdatedAt   time.Time //add ``
 	}
 
 	Tag struct {
-		ID      uuid.UUID `json:"id" gorm:"type:uuid"`
-		Name    string    `json:"name" gorm:"type:string"`
-		AdminID uuid.UUID `json:"admin_id" gorm:"type:uuid"`
+		ID        uuid.UUID `json:"id" gorm:"type:uuid"`
+		Name      string    `json:"name" gorm:"type:string"`
+		CreatorID uuid.UUID `json:"creator_id" gorm:"type:uuid"`
+		Approved  string    `json:"approved" gorm:"type:string"`
 	}
 
 	RefreshToken struct {

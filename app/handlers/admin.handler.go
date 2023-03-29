@@ -80,7 +80,7 @@ func TagCreateHandler(c *fiber.Ctx) error {
 	}
 
 	newTag.ID = uuid.Must(uuid.NewV4())
-	newTag.AdminID = admin.ID
+	newTag.CreatorID = admin.ID
 
 	if ok := db.Add(newTag); !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
