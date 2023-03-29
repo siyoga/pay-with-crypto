@@ -10,12 +10,68 @@
         "version": "1.0"
     },
     "host": "pay-with-crypto.xyz",
+    "basePath": "/",
     "paths": {
+        "/admin/createTag": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create new tag for cards",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "parameters": [
+                    {
+                        "description": "Tag data",
+                        "name": "tag_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/datastore.Tag"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/getForApprove": {
             "get": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Get cards for validate",
@@ -36,6 +92,125 @@
                             "items": {
                                 "$ref": "#/definitions/datastore.Card"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/softDelete": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Ban company account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "parameters": [
+                    {
+                        "description": "Company data",
+                        "name": "company_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "404": {
+                        "description": "Company not exist",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/validateCard": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Validate company card as admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "parameters": [
+                    {
+                        "description": "Validate data",
+                        "name": "validate_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
                         }
                     }
                 }
@@ -104,7 +279,7 @@
             "post": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Create new admin accounts tokens.",
@@ -157,56 +332,6 @@
                     },
                     "409": {
                         "description": "Admin already created",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/createTag": {
-            "post": {
-                "description": "Login to admin account",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin"
-                ],
-                "parameters": [
-                    {
-                        "description": "Tag data",
-                        "name": "tag_data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "name": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/datastore.Tag"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request body",
                         "schema": {
                             "$ref": "#/definitions/utility.Message"
                         }
@@ -344,62 +469,6 @@
                 }
             }
         },
-        "/auth/softDelete": {
-            "delete": {
-                "description": "Ban company account",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin"
-                ],
-                "parameters": [
-                    {
-                        "description": "Company data",
-                        "name": "company_data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request body",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    },
-                    "404": {
-                        "description": "Company not exist",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    }
-                }
-            }
-        },
         "/auth/token_update": {
             "post": {
                 "description": "Update tokens.",
@@ -456,64 +525,11 @@
                 }
             }
         },
-        "/auth/validateCard": {
-            "put": {
-                "description": "Validate company card as admin",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin"
-                ],
-                "parameters": [
-                    {
-                        "description": "Validate data",
-                        "name": "validate_data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "type": "string"
-                                },
-                                "status": {
-                                    "type": "boolean"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request body",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    }
-                }
-            }
-        },
         "/card/create": {
             "post": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Card create",
@@ -589,7 +605,7 @@
             "delete": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Card delete",
@@ -653,7 +669,7 @@
             "put": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Card edit",
@@ -676,6 +692,9 @@
                             "type": "object",
                             "properties": {
                                 "description": {
+                                    "type": "string"
+                                },
+                                "id": {
                                     "type": "string"
                                 },
                                 "linkToProd": {
@@ -878,7 +897,7 @@
             "post": {
                 "security": [
                     {
-                        "accessToken": []
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Card logo uploader",
@@ -954,7 +973,7 @@
                     {
                         "type": "string",
                         "description": "Company id",
-                        "name": "companyId",
+                        "name": "id",
                         "in": "query",
                         "required": true
                     }
@@ -992,6 +1011,9 @@
                 "security": [
                     {
                         "accessToken": []
+                    },
+                    {
+                        "ApiKeyAuth": []
                     }
                 ],
                 "description": "Company logo uploader",
@@ -1059,9 +1081,6 @@
                 "name": {
                     "type": "string"
                 },
-                "password": {
-                    "type": "string"
-                },
                 "updatedAt": {
                     "description": "add ``",
                     "type": "string"
@@ -1077,6 +1096,9 @@
                 "company_id": {
                     "type": "string"
                 },
+                "deletedAt": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -1085,6 +1107,9 @@
                 },
                 "image": {
                     "type": "string"
+                },
+                "is_del": {
+                    "type": "integer"
                 },
                 "linkToProd": {
                     "type": "string"
@@ -1124,7 +1149,7 @@
                 "image": {
                     "type": "string"
                 },
-                "isDel": {
+                "is_del": {
                     "type": "integer"
                 },
                 "linkToCompany": {
@@ -1134,9 +1159,6 @@
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "password": {
                     "type": "string"
                 }
             }
@@ -1176,7 +1198,7 @@
         }
     },
     "securityDefinitions": {
-        "string": {
+        "ApiKeyAuth": {
             "type": "apiKey",
             "name": "accessToken",
             "in": "header"

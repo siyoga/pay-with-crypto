@@ -1,3 +1,4 @@
+basePath: /
 definitions:
   datastore.Admin:
     properties:
@@ -16,8 +17,6 @@ definitions:
         type: string
       name:
         type: string
-      password:
-        type: string
       updatedAt:
         description: add ``
         type: string
@@ -28,12 +27,16 @@ definitions:
         type: string
       company_id:
         type: string
+      deletedAt:
+        type: string
       description:
         type: string
       id:
         type: string
       image:
         type: string
+      is_del:
+        type: integer
       linkToProd:
         type: string
       name:
@@ -59,15 +62,13 @@ definitions:
         type: string
       image:
         type: string
-      isDel:
+      is_del:
         type: integer
       linkToCompany:
         type: string
       mail:
         type: string
       name:
-        type: string
-      password:
         type: string
     type: object
   datastore.Tag:
@@ -100,6 +101,40 @@ info:
   title: pay-with-crypto API
   version: "1.0"
 paths:
+  /admin/createTag:
+    post:
+      consumes:
+      - application/json
+      description: Create new tag for cards
+      parameters:
+      - description: Tag data
+        in: body
+        name: tag_data
+        required: true
+        schema:
+          properties:
+            name:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/datastore.Tag'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Admin
   /admin/getForApprove:
     get:
       consumes:
@@ -115,7 +150,81 @@ paths:
               $ref: '#/definitions/datastore.Card'
             type: array
       security:
-      - accessToken: []
+      - ApiKeyAuth: []
+      tags:
+      - Admin
+  /admin/softDelete:
+    delete:
+      consumes:
+      - application/json
+      description: Ban company account
+      parameters:
+      - description: Company data
+        in: body
+        name: company_data
+        required: true
+        schema:
+          properties:
+            id:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "404":
+          description: Company not exist
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Admin
+  /admin/validateCard:
+    put:
+      consumes:
+      - application/json
+      description: Validate company card as admin
+      parameters:
+      - description: Validate data
+        in: body
+        name: validate_data
+        required: true
+        schema:
+          properties:
+            id:
+              type: string
+            status:
+              type: boolean
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - ApiKeyAuth: []
       tags:
       - Admin
   /auth/admin_login:
@@ -197,41 +306,9 @@ paths:
           schema:
             $ref: '#/definitions/utility.Message'
       security:
-      - accessToken: []
+      - ApiKeyAuth: []
       tags:
       - Auth
-  /auth/createTag:
-    post:
-      consumes:
-      - application/json
-      description: Login to admin account
-      parameters:
-      - description: Tag data
-        in: body
-        name: tag_data
-        required: true
-        schema:
-          properties:
-            name:
-              type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/datastore.Tag'
-        "400":
-          description: Invalid request body
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/utility.Message'
-      tags:
-      - Admin
   /auth/login:
     post:
       consumes:
@@ -312,42 +389,6 @@ paths:
             $ref: '#/definitions/utility.Message'
       tags:
       - Auth
-  /auth/softDelete:
-    delete:
-      consumes:
-      - application/json
-      description: Ban company account
-      parameters:
-      - description: Company data
-        in: body
-        name: company_data
-        required: true
-        schema:
-          properties:
-            id:
-              type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "400":
-          description: Invalid request body
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "404":
-          description: Company not exist
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/utility.Message'
-      tags:
-      - Admin
   /auth/token_update:
     post:
       consumes:
@@ -384,40 +425,6 @@ paths:
             $ref: '#/definitions/utility.Message'
       tags:
       - Auth
-  /auth/validateCard:
-    put:
-      consumes:
-      - application/json
-      description: Validate company card as admin
-      parameters:
-      - description: Validate data
-        in: body
-        name: validate_data
-        required: true
-        schema:
-          properties:
-            id:
-              type: string
-            status:
-              type: boolean
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "400":
-          description: Invalid request body
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/utility.Message'
-      tags:
-      - Admin
   /card/create:
     post:
       consumes:
@@ -463,7 +470,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.Message'
       security:
-      - accessToken: []
+      - ApiKeyAuth: []
       tags:
       - Card
   /card/delete:
@@ -503,7 +510,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.Message'
       security:
-      - accessToken: []
+      - ApiKeyAuth: []
       tags:
       - Card
   /card/edit:
@@ -519,6 +526,8 @@ paths:
         schema:
           properties:
             description:
+              type: string
+            id:
               type: string
             linkToProd:
               type: string
@@ -555,7 +564,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.Message'
       security:
-      - accessToken: []
+      - ApiKeyAuth: []
       tags:
       - Card
   /card/getLogo:
@@ -689,7 +698,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.Message'
       security:
-      - accessToken: []
+      - ApiKeyAuth: []
       tags:
       - Card
   /company/search/id:
@@ -700,7 +709,7 @@ paths:
       parameters:
       - description: Company id
         in: query
-        name: companyId
+        name: id
         required: true
         type: string
       produces:
@@ -750,10 +759,11 @@ paths:
             $ref: '#/definitions/utility.Message'
       security:
       - accessToken: []
+      - ApiKeyAuth: []
       tags:
       - Company
 securityDefinitions:
-  string:
+  ApiKeyAuth:
     in: header
     name: accessToken
     type: apiKey

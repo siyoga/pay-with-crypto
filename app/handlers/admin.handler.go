@@ -16,7 +16,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param admin_data body object{username=string,first_name=string,last_name=string,password=string} true "Admin data"
-// @Security accessToken
+// @Security ApiKeyAuth
 // @Success 200 {object} datastore.Admin
 // @Failure 409 {object} utility.Message "Admin already created"
 // @Failure 400 {object} utility.Message "Invalid request body"
@@ -52,7 +52,7 @@ func AdminRegisterHandler(c *fiber.Ctx) error {
 // @Tags Admin
 // @Accept json
 // @Produce json
-// @Security accessToken
+// @Security ApiKeyAuth
 // @Success 200 {object} []datastore.Card
 // @Router /admin/getForApprove [get]
 func GetCardsForApprove(c *fiber.Ctx) error {
@@ -61,15 +61,16 @@ func GetCardsForApprove(c *fiber.Ctx) error {
 	return c.Status(200).JSON(cards)
 }
 
-// @Description Login to admin account
+// @Description Create new tag for cards
 // @Tags Admin
 // @Accept json
 // @Produce json
+// @Security ApiKeyAuth
 // @Param tag_data body object{name=string} true "Tag data"
 // @Success 201 {object} datastore.Tag
 // @Failure 400 {object} utility.Message "Invalid request body"
 // @Failure 500 {object} utility.Message "Internal server error"
-// @Router /auth/createTag [post]
+// @Router /admin/createTag [post]
 func TagCreateHandler(c *fiber.Ctx) error {
 	var newTag db.Tag
 	admin := c.Locals("admin").(db.Admin)
@@ -154,11 +155,12 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 // @Tags Admin
 // @Accept json
 // @Produce json
+// @Security ApiKeyAuth
 // @Param validate_data body object{id=string,status=bool} true "Validate data"
 // @Success 200 {object} utility.Message
 // @Failure 400 {object} utility.Message "Invalid request body"
 // @Failure 500 {object} utility.Message "Internal server error"
-// @Router /auth/validateCard [put]
+// @Router /admin/validateCard [put]
 func ValidateCard(c *fiber.Ctx) error {
 	var body utility.Status
 	var response string
@@ -192,12 +194,13 @@ func ValidateCard(c *fiber.Ctx) error {
 // @Tags Admin
 // @Accept json
 // @Produce json
+// @Security ApiKeyAuth
 // @Param company_data body object{id=string} true "Company data"
 // @Success 200 {object} utility.Message
 // @Failure 400 {object} utility.Message "Invalid request body"
 // @Failure 404 {object} utility.Message "Company not exist"
 // @Failure 500 {object} utility.Message "Internal server error"
-// @Router /auth/softDelete [delete]
+// @Router /admin/softDelete [delete]
 func SoftDeleteHandler(c *fiber.Ctx) error {
 	var company db.Company
 	var state bool
@@ -210,9 +213,25 @@ func SoftDeleteHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Such a company does not exist"})
 	}
 
-	if state = db.DeleteBy[db.Company]("id", company.ID); !state {
+	if state = db.UnscopeCompanyByIdWithCards(company.ID); !state {
 		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
 	}
 
-	return c.Status(200).JSON(utility.Message{Text: "User deleted from scope."})
+	return c.Status(200).JSON(utility.Message{Text: "Company and card of this company deleted from scope."})
+}
+
+func UnbanCompanyHandler(c *fiber.Ctx) error {
+	var company db.Company
+	var state bool
+
+	if err := c.BodyParser(&company); err != nil {
+		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Invalid request body"})
+	}
+
+	if state = db.ScopeCompanyByIdWithCards(company.ID); !state {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+	}
+
+	return c.Status(200).JSON(utility.Message{Text: "Company and card of this company added to scope."})
+
 }

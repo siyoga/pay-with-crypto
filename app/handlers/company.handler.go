@@ -13,7 +13,7 @@ import (
 // @Tags Company
 // @Accept json
 // @Produce json
-// @Param companyId query string true "Company id"
+// @Param id query string true "Company id"
 // @Success 200 {object} datastore.Company
 // @Failure 400 {object} utility.Message "Invalid request"
 // @Failure 404 {object} utility.Message "No card"
@@ -32,7 +32,10 @@ func CompanyGetByIdHandler(c *fiber.Ctx) error {
 	company, state = db.GetUserById(companyId)
 
 	if !state {
-		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Card not exist"})
+		if _, state = db.GetOneUnscopedBy[db.Card]("id", companyId); state {
+			return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "Owner of card was banned"})
+		}
+		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Company not exist"})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(company)
@@ -43,6 +46,7 @@ func CompanyGetByIdHandler(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Security accessToken
+// @Security ApiKeyAuth
 // @Param companyLogo formData file true "Logo image"
 // @Success 204 "Company logo successful uploaded"
 // @Failure 400 {object} utility.Message "Invalid request, log in"
