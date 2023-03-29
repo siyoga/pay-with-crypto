@@ -26,11 +26,11 @@ func AdminRegisterHandler(c *fiber.Ctx) error {
 	var admin db.Admin
 
 	if err := c.BodyParser(&admin); err != nil {
-		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Invalid request body"})
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request body"})
 	}
 
 	if _, engaged := db.GetOneBy[db.Admin]("name", admin.Name); engaged {
-		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Such an admin is already created"})
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Such an admin is already created"})
 	}
 
 	admin.ID = uuid.Must(uuid.NewV4())
