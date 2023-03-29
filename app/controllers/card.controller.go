@@ -8,6 +8,8 @@ import (
 )
 
 func CardController(a *fiber.App) {
+	a.Get("/", handlers.ShowFirstCards)
+
 	route := a.Group("/card")
 
 	route.Get("/search", handlers.CardsSearcher)
