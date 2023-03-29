@@ -12,4 +12,5 @@ func CompanyController(a *fiber.App) {
 
 	route.Get("/search/id", handlers.CompanyGetByIdHandler)
 	route.Post("/uploadLogo", middleware.Auth, handlers.CompanyLogoUploaderHandler)
+	route.Post("/createTag", middleware.Auth, handlers.TagCompanyCreateHandler)
 }
