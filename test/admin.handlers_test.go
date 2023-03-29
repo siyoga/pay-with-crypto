@@ -141,7 +141,7 @@ func TestCreateTag(t *testing.T) {
 	db.DeleteBy[db.Tag]("name", "TEST_TOKEN")
 }
 
-func TestValidateCard(t *testing.T) {
+func TestValidate(t *testing.T) {
 	// Works even if the card does not exist
 	if err := godotenv.Load("../dev.env"); err != nil {
 		log.Fatalf("Error loading dev.env file")
@@ -178,14 +178,14 @@ func TestValidateCard(t *testing.T) {
 		{
 			name:        "Approve",
 			method:      http.MethodPut,
-			path:        "http://127.0.0.1:8081/admin/validateCard",
+			path:        "http://127.0.0.1:8081/admin/validate",
 			requestBody: utility.Status{ID: id, Status: true},
 			statusCode:  200,
 		},
 		{
 			name:        "Disapprove",
 			method:      http.MethodPut,
-			path:        "http://127.0.0.1:8081/admin/validateCard",
+			path:        "http://127.0.0.1:8081/admin/validate",
 			requestBody: utility.Status{ID: id, Status: false},
 			statusCode:  200,
 		},

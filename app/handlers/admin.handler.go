@@ -161,7 +161,7 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} utility.Message "Invalid request body"
 // @Failure 500 {object} utility.Message "Internal server error"
 // @Router /admin/validateCard [put]
-func ValidateCard(c *fiber.Ctx) error {
+func Validate(c *fiber.Ctx) error {
 	var body utility.Status
 	var response string
 
@@ -171,20 +171,20 @@ func ValidateCard(c *fiber.Ctx) error {
 
 	if body.Status {
 		_, isOK := db.UpdateOneBy[db.Card]("id", body.ID, "approved", "approved")
-
-		if !isOK {
+		_, isOK2 := db.UpdateOneBy[db.Tag]("id", body.ID, "approved", "approved")
+		if !isOK && !isOK2 {
 			return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
 		}
 
-		response = "Card is approved"
+		response = "Approved"
 	} else {
 		_, isOK := db.UpdateOneBy[db.Card]("id", body.ID, "approved", "disapproved")
+		_, isOK2 := db.UpdateOneBy[db.Tag]("id", body.ID, "approved", "dispproved")
 
-		if !isOK {
+		if !isOK && !isOK2 {
 			return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
 		}
-
-		response = "Card is disapproved"
+		response = "Disapproved"
 	}
 
 	return c.Status(200).JSON(utility.Message{Text: response})

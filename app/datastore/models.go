@@ -61,7 +61,7 @@ type (
 		Name        string    `json:"name" gorm:"type:string;unique"`
 		FirstName   string    `json:"first_name" gorm:"type:string"`
 		LastName    string    `json:"last_name" gorm:"type:string"`
-		Password    string    `json:"-" gorm:"type:string"`
+		Password    string    `json:"password" gorm:"type:string"`
 		CreatedTags []Tag     `json:"created_tags" gorm:"foreignKey:AdminID"`
 		CreatedAt   time.Time //add ``
 		UpdatedAt   time.Time //add ``
