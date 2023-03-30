@@ -26,11 +26,11 @@ func AdminRegisterHandler(c *fiber.Ctx) error {
 	var admin db.Admin
 
 	if err := c.BodyParser(&admin); err != nil {
-		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Invalid request body"})
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request body"})
 	}
 
 	if _, engaged := db.GetOneBy[db.Admin]("name", admin.Name); engaged {
-		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Such an admin is already created"})
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Such an admin is already created"})
 	}
 
 	admin.ID = uuid.Must(uuid.NewV4())
@@ -80,7 +80,7 @@ func TagCreateHandler(c *fiber.Ctx) error {
 	}
 
 	newTag.ID = uuid.Must(uuid.NewV4())
-	newTag.AdminID = admin.ID
+	newTag.CreatorID = admin.ID
 
 	if ok := db.Add(newTag); !ok {
 		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
