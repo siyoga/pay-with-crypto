@@ -235,3 +235,31 @@ func UnbanCompanyHandler(c *fiber.Ctx) error {
 	return c.Status(200).JSON(utility.Message{Text: "Company and card of this company added to scope."})
 
 }
+
+func ValidateTag(c *fiber.Ctx) error {
+	var body utility.Status
+	var response string
+
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Invalid request body"})
+	}
+
+	if body.Status {
+		_, isOK := db.UpdateOneBy[db.Tag]("id", body.ID, "approved", "approved")
+		if !isOK {
+			return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+		}
+
+		response = "Tag is approved"
+	} else {
+		_, isOK := db.UpdateOneBy[db.Tag]("id", body.ID, "approved", "dispproved")
+
+		if !isOK {
+			return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+		}
+
+		response = "Tag is disapproved"
+	}
+
+	return c.Status(200).JSON(utility.Message{Text: response})
+}
