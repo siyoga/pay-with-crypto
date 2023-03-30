@@ -161,7 +161,7 @@ func AdminLoginHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} utility.Message "Invalid request body"
 // @Failure 500 {object} utility.Message "Internal server error"
 // @Router /admin/validateCard [put]
-func Validate(c *fiber.Ctx) error {
+func ValidateCard(c *fiber.Ctx) error {
 	var body utility.Status
 	var response string
 
@@ -171,20 +171,20 @@ func Validate(c *fiber.Ctx) error {
 
 	if body.Status {
 		_, isOK := db.UpdateOneBy[db.Card]("id", body.ID, "approved", "approved")
-		_, isOK2 := db.UpdateOneBy[db.Tag]("id", body.ID, "approved", "approved")
-		if !isOK && !isOK2 {
+
+		if !isOK {
 			return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
 		}
 
-		response = "Approved"
+		response = "Card is approved"
 	} else {
 		_, isOK := db.UpdateOneBy[db.Card]("id", body.ID, "approved", "disapproved")
-		_, isOK2 := db.UpdateOneBy[db.Tag]("id", body.ID, "approved", "dispproved")
 
-		if !isOK && !isOK2 {
+		if !isOK {
 			return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
 		}
-		response = "Disapproved"
+
+		response = "Card is disapproved"
 	}
 
 	return c.Status(200).JSON(utility.Message{Text: response})
@@ -234,4 +234,32 @@ func UnbanCompanyHandler(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(utility.Message{Text: "Company and card of this company added to scope."})
 
+}
+
+func ValidateTag(c *fiber.Ctx) error {
+	var body utility.Status
+	var response string
+
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Invalid request body"})
+	}
+
+	if body.Status {
+		_, isOK := db.UpdateOneBy[db.Tag]("id", body.ID, "approved", "approved")
+		if !isOK {
+			return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+		}
+
+		response = "Tag is approved"
+	} else {
+		_, isOK := db.UpdateOneBy[db.Tag]("id", body.ID, "approved", "dispproved")
+
+		if !isOK {
+			return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+		}
+
+		response = "Tag is disapproved"
+	}
+
+	return c.Status(200).JSON(utility.Message{Text: response})
 }
