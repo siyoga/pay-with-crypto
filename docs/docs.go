@@ -56,7 +56,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Ban company account",
+                "description": "Unban company account",
                 "consumes": [
                     "application/json"
                 ],
@@ -84,19 +84,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Company added to server scope",
                         "schema": {
                             "$ref": "#/definitions/utility.Message"
                         }
                     },
                     "400": {
                         "description": "Invalid request body",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    },
-                    "404": {
-                        "description": "Company not exist",
                         "schema": {
                             "$ref": "#/definitions/utility.Message"
                         }
@@ -118,6 +112,64 @@ const docTemplate = `{
                     }
                 ],
                 "description": "Validate company card as admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "parameters": [
+                    {
+                        "description": "Validate data",
+                        "name": "validate_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/validateTag": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Validate tag as admin",
                 "consumes": [
                     "application/json"
                 ],
@@ -995,9 +1047,6 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "accessToken": []
-                    },
-                    {
                         "ApiKeyAuth": []
                     }
                 ],
@@ -1038,6 +1087,89 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/tag/create": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create tag as company",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "parameters": [
+                    {
+                        "description": "Tag data",
+                        "name": "tag_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Tag created"
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "409": {
+                        "description": "Tag already exist",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/tag/get/all": {
+            "get": {
+                "description": "Return all approved tags",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tag"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return tags"
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1047,12 +1179,6 @@ const docTemplate = `{
                 "createdAt": {
                     "description": "add ` + "`" + `` + "`" + `",
                     "type": "string"
-                },
-                "created_tags": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/datastore.Tag"
-                    }
                 },
                 "first_name": {
                     "type": "string"

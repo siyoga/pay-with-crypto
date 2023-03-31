@@ -2,10 +2,6 @@ basePath: /
 definitions:
   datastore.Admin:
     properties:
-      created_tags:
-        items:
-          $ref: '#/definitions/datastore.Tag'
-        type: array
       createdAt:
         description: add ``
         type: string
@@ -131,7 +127,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Ban company account
+      description: Unban company account
       parameters:
       - description: Company data
         in: body
@@ -146,15 +142,11 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Company added to server scope
           schema:
             $ref: '#/definitions/utility.Message'
         "400":
           description: Invalid request body
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "404":
-          description: Company not exist
           schema:
             $ref: '#/definitions/utility.Message'
         "500":
@@ -170,6 +162,42 @@ paths:
       consumes:
       - application/json
       description: Validate company card as admin
+      parameters:
+      - description: Validate data
+        in: body
+        name: validate_data
+        required: true
+        schema:
+          properties:
+            id:
+              type: string
+            status:
+              type: boolean
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Admin
+  /admin/validateTag:
+    put:
+      consumes:
+      - application/json
+      description: Validate tag as admin
       parameters:
       - description: Validate data
         in: body
@@ -752,10 +780,61 @@ paths:
           schema:
             $ref: '#/definitions/utility.Message'
       security:
-      - accessToken: []
       - ApiKeyAuth: []
       tags:
       - Company
+  /tag/create:
+    post:
+      consumes:
+      - application/json
+      description: Create tag as company
+      parameters:
+      - description: Tag data
+        in: body
+        name: tag_data
+        required: true
+        schema:
+          properties:
+            name:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Tag created
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "409":
+          description: Tag already exist
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Tag
+  /tag/get/all:
+    get:
+      consumes:
+      - application/json
+      description: Return all approved tags
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return tags
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      tags:
+      - Tag
 securityDefinitions:
   ApiKeyAuth:
     in: header
