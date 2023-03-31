@@ -58,14 +58,13 @@ type (
 	}
 
 	Admin struct {
-		ID          uuid.UUID `json:"id" gorm:"type:uuid"`
-		Name        string    `json:"name" gorm:"type:string;unique"`
-		FirstName   string    `json:"first_name" gorm:"type:string"`
-		LastName    string    `json:"last_name" gorm:"type:string"`
-		Password    string    `json:"password" gorm:"type:string"`
-		CreatedTags []Tag     `json:"created_tags" gorm:"foreignKey:CreatorID"`
-		CreatedAt   time.Time //add ``
-		UpdatedAt   time.Time //add ``
+		ID        uuid.UUID `json:"id" gorm:"type:uuid"`
+		Name      string    `json:"name" gorm:"type:string;unique"`
+		FirstName string    `json:"first_name" gorm:"type:string"`
+		LastName  string    `json:"last_name" gorm:"type:string"`
+		Password  string    `json:"password" gorm:"type:string"`
+		CreatedAt time.Time //add ``
+		UpdatedAt time.Time //add ``
 	}
 
 	Tag struct {

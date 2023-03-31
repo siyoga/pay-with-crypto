@@ -19,61 +19,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/admin/createTag": {
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Create new tag for cards",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin"
-                ],
-                "parameters": [
-                    {
-                        "description": "Tag data",
-                        "name": "tag_data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "name": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/datastore.Tag"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request body",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    }
-                }
-            }
-        },
         "/admin/getForApprove": {
             "get": {
                 "security": [
@@ -223,7 +168,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/admin_login": {
+        "/auth/admin/login": {
             "post": {
                 "description": "Login to admin account",
                 "consumes": [
@@ -282,7 +227,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/admin_register": {
+        "/auth/admin/register": {
             "post": {
                 "security": [
                     {
@@ -476,7 +421,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/token_update": {
+        "/auth/tokenUpdate": {
             "post": {
                 "description": "Update tokens.",
                 "consumes": [
@@ -525,6 +470,39 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/card/": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get cards for main page",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Card"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Card successful edited",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "404": {
+                        "description": "No cards",
                         "schema": {
                             "$ref": "#/definitions/utility.Message"
                         }
@@ -1088,6 +1066,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "password": {
+                    "type": "string"
+                },
                 "updatedAt": {
                     "description": "add ` + "`" + `` + "`" + `",
                     "type": "string"
@@ -1147,6 +1128,12 @@ const docTemplate = `{
                         "$ref": "#/definitions/datastore.Card"
                     }
                 },
+                "created_tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/datastore.Tag"
+                    }
+                },
                 "deletedAt": {
                     "type": "string"
                 },
@@ -1173,7 +1160,10 @@ const docTemplate = `{
         "datastore.Tag": {
             "type": "object",
             "properties": {
-                "admin_id": {
+                "approved": {
+                    "type": "string"
+                },
+                "creator_id": {
                     "type": "string"
                 },
                 "id": {

@@ -29,7 +29,7 @@ func Auth(c *fiber.Ctx) error {
 
 	if err != nil {
 		fmt.Println(err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err})
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: err.Error()})
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {

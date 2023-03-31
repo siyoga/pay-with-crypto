@@ -11,7 +11,6 @@ func AdminController(a *fiber.App) {
 	route := a.Group("/admin")
 
 	route.Get("/getForApprove", middleware.AuthAdmin, handlers.GetCardsForApprove)
-	route.Post("/createTag", middleware.AuthAdmin, handlers.TagCreateHandler)
 	route.Put("/validateCard", middleware.AuthAdmin, handlers.ValidateCard)
 	route.Put("/validateTag", middleware.AuthAdmin, handlers.ValidateTag)
 	route.Patch("/unban", middleware.AuthAdmin, handlers.UnbanCompanyHandler)    //TODO!: Need to do a personal list of banned for every admin as a source of banned id of Companys

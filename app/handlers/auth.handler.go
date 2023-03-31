@@ -115,20 +115,25 @@ func LoginHandler(c *fiber.Ctx) error {
 // @Failure 400 {object} utility.Message "Refresh token was not provided"
 // @Failure 400 {object} utility.Message "Can't update refresh token"
 // @Failure 500 {object} utility.Message "Internal server error"
-// @Router /auth/token_update [post]
+// @Router /auth/tokenUpdate [post]
 func UpdateTokensHandler(c *fiber.Ctx) error {
 	var refreshToken db.RefreshToken
-	company := c.Locals("company").(db.Company)
 
 	if err := c.BodyParser(&refreshToken); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Refresh token was not provided"})
 	}
 
-	if _, state := db.GetOneBy[db.RefreshToken]("token", refreshToken.Token); state {
-		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Such refresh token already exist"})
+	if _, state := db.GetOneBy[db.RefreshToken]("token", refreshToken.Token); !state {
+		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Such refresh token is not exist"})
 	}
 
-	response, errs := generateTokenResponse(company.ID)
+	userId, err := unwrapRefreshJWT(refreshToken.Token)
+
+	if !err {
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid refresh token, try log in"})
+	}
+
+	response, errs := generateTokenResponse(uuid.FromStringOrNil(userId))
 	if errs[0] != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
 	}
@@ -249,10 +254,9 @@ func AuthGoogleLoginUser(c *fiber.Ctx, userdata db.Company) (utility.JWTTokenPai
 	return response, nil
 }
 
-func generateTokenResponse(companyID uuid.UUID) (utility.JWTTokenPair, []error) {
-
+func generateTokenResponse(ID uuid.UUID) (utility.JWTTokenPair, []error) {
 	payload := jwt.MapClaims{
-		"sub":       companyID,
+		"sub":       ID,
 		"generated": time.Now().Add(15 * 24 * time.Hour),
 	}
 
@@ -270,4 +274,27 @@ func generateTokenResponse(companyID uuid.UUID) (utility.JWTTokenPair, []error) 
 	errors[1] = err_refresh
 
 	return response, errors
+}
+
+func unwrapRefreshJWT(tokenString string) (string, bool) {
+	var userId string
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return []byte("secretRefreshKey"), nil
+	})
+
+	if err != nil {
+		return "", false
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		userId = claims["sub"].(string)
+	} else {
+		return "", false
+	}
+
+	return userId, true
 }

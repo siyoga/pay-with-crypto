@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"os"
 	db "pay-with-crypto/app/datastore"
 	"pay-with-crypto/app/utility"
@@ -21,7 +22,7 @@ import (
 // @Failure 409 {object} utility.Message "Admin already created"
 // @Failure 400 {object} utility.Message "Invalid request body"
 // @Failure 500 {object} utility.Message "Internal server error"
-// @Router /auth/admin_register [post]
+// @Router /auth/admin/register [post]
 func AdminRegisterHandler(c *fiber.Ctx) error {
 	var admin db.Admin
 
@@ -61,34 +62,6 @@ func GetCardsForApprove(c *fiber.Ctx) error {
 	return c.Status(200).JSON(cards)
 }
 
-// @Description Create new tag for cards
-// @Tags Admin
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Param tag_data body object{name=string} true "Tag data"
-// @Success 201 {object} datastore.Tag
-// @Failure 400 {object} utility.Message "Invalid request body"
-// @Failure 500 {object} utility.Message "Internal server error"
-// @Router /admin/createTag [post]
-func TagCreateHandler(c *fiber.Ctx) error {
-	var newTag db.Tag
-	admin := c.Locals("admin").(db.Admin)
-
-	if err := c.BodyParser(&newTag); err != nil {
-		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Invalid request body"})
-	}
-
-	newTag.ID = uuid.Must(uuid.NewV4())
-	newTag.CreatorID = admin.ID
-
-	if ok := db.Add(newTag); !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
-	}
-
-	return c.Status(201).JSON(newTag)
-}
-
 func CreateFirstAdmin() {
 	var firstAdmin db.Admin
 
@@ -101,6 +74,7 @@ func CreateFirstAdmin() {
 	firstAdmin.Password = string(hash)
 
 	if empty := db.AdminCheck(); empty {
+		fmt.Println("Create default admin account...")
 		db.Add(firstAdmin)
 	}
 }
@@ -115,22 +89,23 @@ func CreateFirstAdmin() {
 // @Failure 400 {object} utility.Message "Invalid request body"
 // @Failure 400 {object} utility.Message "Invalid credentials"
 // @Failure 500 {object} utility.Message "Internal server error"
-// @Router /auth/admin_login [post]
+// @Router /auth/admin/login [post]
 func AdminLoginHandler(c *fiber.Ctx) error {
-	var requsetData db.Admin
+	var requestData db.Admin
 	var refreshToken db.RefreshToken
 
-	if err := c.BodyParser(&requsetData); err != nil {
+	if err := c.BodyParser(&requestData); err != nil {
 		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Invalid request body"})
 	}
 
-	admin, state := db.Auth[db.Admin](requsetData.Name)
+	admin, state := db.Auth[db.Admin](requestData.Name)
+	fmt.Println(admin)
 
 	if !state {
 		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Invalid credentials"})
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(requsetData.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(requestData.Password)); err != nil {
 		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Invalid credentials"})
 	}
 
@@ -220,6 +195,16 @@ func SoftDeleteHandler(c *fiber.Ctx) error {
 	return c.Status(200).JSON(utility.Message{Text: "Company and card of this company deleted from scope."})
 }
 
+// @Description Unban company account
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param company_data body object{id=string} true "Company data"
+// @Success 200 {object} utility.Message "Company added to server scope"
+// @Failure 400 {object} utility.Message "Invalid request body"
+// @Failure 500 {object} utility.Message "Internal server error"
+// @Router /admin/softDelete [delete]
 func UnbanCompanyHandler(c *fiber.Ctx) error {
 	var company db.Company
 	var state bool
@@ -236,6 +221,16 @@ func UnbanCompanyHandler(c *fiber.Ctx) error {
 
 }
 
+// @Description Validate tag as admin
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param validate_data body object{id=string,status=bool} true "Validate data"
+// @Success 200 {object} utility.Message
+// @Failure 400 {object} utility.Message "Invalid request body"
+// @Failure 500 {object} utility.Message "Internal server error"
+// @Router /admin/validateTag [put]
 func ValidateTag(c *fiber.Ctx) error {
 	var body utility.Status
 	var response string

@@ -17,6 +17,8 @@ definitions:
         type: string
       name:
         type: string
+      password:
+        type: string
       updatedAt:
         description: add ``
         type: string
@@ -56,6 +58,10 @@ definitions:
         items:
           $ref: '#/definitions/datastore.Card'
         type: array
+      created_tags:
+        items:
+          $ref: '#/definitions/datastore.Tag'
+        type: array
       deletedAt:
         type: string
       id:
@@ -73,7 +79,9 @@ definitions:
     type: object
   datastore.Tag:
     properties:
-      admin_id:
+      approved:
+        type: string
+      creator_id:
         type: string
       id:
         type: string
@@ -101,40 +109,6 @@ info:
   title: pay-with-crypto API
   version: "1.0"
 paths:
-  /admin/createTag:
-    post:
-      consumes:
-      - application/json
-      description: Create new tag for cards
-      parameters:
-      - description: Tag data
-        in: body
-        name: tag_data
-        required: true
-        schema:
-          properties:
-            name:
-              type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/datastore.Tag'
-        "400":
-          description: Invalid request body
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/utility.Message'
-      security:
-      - ApiKeyAuth: []
-      tags:
-      - Admin
   /admin/getForApprove:
     get:
       consumes:
@@ -227,7 +201,7 @@ paths:
       - ApiKeyAuth: []
       tags:
       - Admin
-  /auth/admin_login:
+  /auth/admin/login:
     post:
       consumes:
       - application/json
@@ -265,7 +239,7 @@ paths:
             $ref: '#/definitions/utility.Message'
       tags:
       - Auth
-  /auth/admin_register:
+  /auth/admin/register:
     post:
       consumes:
       - application/json
@@ -389,7 +363,7 @@ paths:
             $ref: '#/definitions/utility.Message'
       tags:
       - Auth
-  /auth/token_update:
+  /auth/tokenUpdate:
     post:
       consumes:
       - application/json
@@ -425,6 +399,26 @@ paths:
             $ref: '#/definitions/utility.Message'
       tags:
       - Auth
+  /card/:
+    get:
+      consumes:
+      - application/json
+      description: Get cards for main page
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Card successful edited
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "404":
+          description: No cards
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Card
   /card/create:
     post:
       consumes:

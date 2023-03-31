@@ -6,8 +6,6 @@ import (
 	"pay-with-crypto/app/datastore/s3"
 	"pay-with-crypto/app/utility"
 
-	"github.com/gofrs/uuid"
-
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -47,7 +45,6 @@ func CompanyGetByIdHandler(c *fiber.Ctx) error {
 // @Tags Company
 // @Accept json
 // @Produce json
-// @Security accessToken
 // @Security ApiKeyAuth
 // @Param companyLogo formData file true "Logo image"
 // @Success 204 "Company logo successful uploaded"
@@ -88,23 +85,4 @@ func CompanyLogoUploaderHandler(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
-}
-
-func TagCompanyCreateHandler(c *fiber.Ctx) error {
-	var newTag db.Tag
-	company := c.Locals("company").(db.Company)
-
-	if err := c.BodyParser(&newTag); err != nil {
-		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Invalid request body"})
-	}
-
-	newTag.ID = uuid.Must(uuid.NewV4())
-	newTag.CreatorID = company.ID
-	newTag.Approved = "pending"
-
-	if ok := db.Add(newTag); !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
-	}
-
-	return c.Status(201).JSON(newTag)
 }

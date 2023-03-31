@@ -299,3 +299,20 @@ func CardEditHandler(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(utility.Message{Text: "Card successfully edited"})
 }
+
+// @Description Get cards for main page
+// @Tags Card
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} utility.Message "Card successful edited"
+// @Failure 404 {object} utility.Message "No cards"
+// @Router /card/ [get]
+func ShowFirstCards(c *fiber.Ctx) error {
+	result, state := db.GetAllOrdered[db.Card]("approved", "approved", "views desc")
+	if !state {
+		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "No cards!"})
+	}
+
+	return (c.Status(fiber.StatusOK).JSON(result))
+}
