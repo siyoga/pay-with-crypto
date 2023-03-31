@@ -3,7 +3,7 @@
 .idea/
 
 # Project
-/*.env
+*.env
 pay-with-crypto
 mc
 logs/
