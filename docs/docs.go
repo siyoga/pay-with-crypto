@@ -19,6 +19,100 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get cards for main page",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Card"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Card successful edited",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "404": {
+                        "description": "No cards",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/ban": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Ban company account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "parameters": [
+                    {
+                        "description": "Company data",
+                        "name": "company_data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "404": {
+                        "description": "Company not exist",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.Message"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/getForApprove": {
             "get": {
                 "security": [
@@ -49,7 +143,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/softDelete": {
+        "/admin/unban": {
             "delete": {
                 "security": [
                     {
@@ -522,39 +616,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    }
-                }
-            }
-        },
-        "/card/": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Get cards for main page",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Card"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Card successful edited",
-                        "schema": {
-                            "$ref": "#/definitions/utility.Message"
-                        }
-                    },
-                    "404": {
-                        "description": "No cards",
                         "schema": {
                             "$ref": "#/definitions/utility.Message"
                         }

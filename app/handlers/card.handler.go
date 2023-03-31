@@ -307,7 +307,7 @@ func CardEditHandler(c *fiber.Ctx) error {
 // @Security ApiKeyAuth
 // @Success 200 {object} utility.Message "Card successful edited"
 // @Failure 404 {object} utility.Message "No cards"
-// @Router /card/ [get]
+// @Router / [get]
 func ShowFirstCards(c *fiber.Ctx) error {
 	result, state := db.GetAllOrdered[db.Card]("approved", "approved", "views desc")
 	if !state {

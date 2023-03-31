@@ -105,6 +105,64 @@ info:
   title: pay-with-crypto API
   version: "1.0"
 paths:
+  /:
+    get:
+      consumes:
+      - application/json
+      description: Get cards for main page
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Card successful edited
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "404":
+          description: No cards
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Card
+  /admin/ban:
+    delete:
+      consumes:
+      - application/json
+      description: Ban company account
+      parameters:
+      - description: Company data
+        in: body
+        name: company_data
+        required: true
+        schema:
+          properties:
+            id:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "404":
+          description: Company not exist
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Admin
   /admin/getForApprove:
     get:
       consumes:
@@ -123,7 +181,7 @@ paths:
       - ApiKeyAuth: []
       tags:
       - Admin
-  /admin/softDelete:
+  /admin/unban:
     delete:
       consumes:
       - application/json
@@ -427,26 +485,6 @@ paths:
             $ref: '#/definitions/utility.Message'
       tags:
       - Auth
-  /card/:
-    get:
-      consumes:
-      - application/json
-      description: Get cards for main page
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Card successful edited
-          schema:
-            $ref: '#/definitions/utility.Message'
-        "404":
-          description: No cards
-          schema:
-            $ref: '#/definitions/utility.Message'
-      security:
-      - ApiKeyAuth: []
-      tags:
-      - Card
   /card/create:
     post:
       consumes:
