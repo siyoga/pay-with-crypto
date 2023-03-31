@@ -182,7 +182,7 @@ paths:
       tags:
       - Admin
   /admin/unban:
-    delete:
+    patch:
       consumes:
       - application/json
       description: Unban company account

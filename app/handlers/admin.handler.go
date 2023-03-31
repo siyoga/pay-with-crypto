@@ -204,7 +204,7 @@ func SoftDeleteHandler(c *fiber.Ctx) error {
 // @Success 200 {object} utility.Message "Company added to server scope"
 // @Failure 400 {object} utility.Message "Invalid request body"
 // @Failure 500 {object} utility.Message "Internal server error"
-// @Router /admin/unban [delete]
+// @Router /admin/unban [patch]
 func UnbanCompanyHandler(c *fiber.Ctx) error {
 	var company db.Company
 	var state bool

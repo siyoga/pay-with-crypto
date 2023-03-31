@@ -137,7 +137,7 @@
             }
         },
         "/admin/unban": {
-            "delete": {
+            "patch": {
                 "security": [
                     {
                         "ApiKeyAuth": []

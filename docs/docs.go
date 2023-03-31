@@ -144,7 +144,7 @@ const docTemplate = `{
             }
         },
         "/admin/unban": {
-            "delete": {
+            "patch": {
                 "security": [
                     {
                         "ApiKeyAuth": []
