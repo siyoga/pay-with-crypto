@@ -2,6 +2,7 @@ package s3
 
 import (
 	"context"
+	"fmt"
 	"mime/multipart"
 	"path/filepath"
 	"pay-with-crypto/app/utility"
@@ -27,6 +28,7 @@ func UploadFile(file *multipart.FileHeader, buffer multipart.File, bucketName st
 
 	if err != nil {
 		utility.Error(err, "Upload File")
+		fmt.Println(err)
 		return nil, false
 	}
 
