@@ -258,3 +258,27 @@ func ValidateTag(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(utility.Message{Text: response})
 }
+
+func GetAllCompanies(c *fiber.Ctx) error {
+	result, state := db.GetAllOrdered[db.Company]("is_del", "0", "name")
+	if !state {
+		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "No companies!"})
+	}
+
+	return (c.Status(fiber.StatusOK).JSON(result))
+}
+
+func TagDeleteHandler(c *fiber.Ctx) error {
+	var tag db.Card
+	var state bool
+
+	if err := c.BodyParser(&tag); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request"})
+	}
+
+	if state = db.DeleteBy[db.Tag]("id", tag.ID); !state {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+	}
+
+	return c.Status(200).JSON(utility.Message{Text: "Tag is deleted."})
+}
