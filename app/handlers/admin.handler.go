@@ -280,7 +280,7 @@ func GetAllCompanies(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Param card_data body object{id=string} true "Card data"
+// @Param company_data body object{id=string} true "Company data"
 // @Success 204 "Card successful deleted"
 // @Failure 400 {object} utility.Message "Invalid request"
 // @Failure 500 {object} utility.Message "Internal server error"
