@@ -259,6 +259,13 @@ func ValidateTag(c *fiber.Ctx) error {
 	return c.Status(200).JSON(utility.Message{Text: response})
 }
 
+// @Description Get all companies
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} []datastore.Company
+// @Router /admin/getAllCompanies [get]
 func GetAllCompanies(c *fiber.Ctx) error {
 	result, state := db.GetAllOrdered[db.Company]("is_del", "0", "name")
 	if !state {
@@ -268,6 +275,16 @@ func GetAllCompanies(c *fiber.Ctx) error {
 	return (c.Status(fiber.StatusOK).JSON(result))
 }
 
+// @Description Delete tag
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param card_data body object{id=string} true "Card data"
+// @Success 204 "Card successful deleted"
+// @Failure 400 {object} utility.Message "Invalid request"
+// @Failure 500 {object} utility.Message "Internal server error"
+// @Router /admin/deleteTag [delete]
 func TagDeleteHandler(c *fiber.Ctx) error {
 	var tag db.Card
 	var state bool
