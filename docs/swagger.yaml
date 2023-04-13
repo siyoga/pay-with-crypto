@@ -163,6 +163,56 @@ paths:
       - ApiKeyAuth: []
       tags:
       - Admin
+  /admin/deleteTag:
+    delete:
+      consumes:
+      - application/json
+      description: Delete tag
+      parameters:
+      - description: Company data
+        in: body
+        name: company_data
+        required: true
+        schema:
+          properties:
+            id:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Tag successful deleted
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/utility.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utility.Message'
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Admin
+  /admin/getAllCompanies:
+    get:
+      consumes:
+      - application/json
+      description: Get all companies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/datastore.Company'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - Admin
   /admin/getForApprove:
     get:
       consumes:

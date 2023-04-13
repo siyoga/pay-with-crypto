@@ -281,12 +281,12 @@ func GetAllCompanies(c *fiber.Ctx) error {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param company_data body object{id=string} true "Company data"
-// @Success 204 "Card successful deleted"
+// @Success 204 "Tag successful deleted"
 // @Failure 400 {object} utility.Message "Invalid request"
 // @Failure 500 {object} utility.Message "Internal server error"
 // @Router /admin/deleteTag [delete]
 func TagDeleteHandler(c *fiber.Ctx) error {
-	var tag db.Card
+	var tag db.Tag
 	var state bool
 
 	if err := c.BodyParser(&tag); err != nil {
