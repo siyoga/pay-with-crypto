@@ -6,10 +6,16 @@ import (
 	db "pay-with-crypto/app/datastore"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func Start(config db.DatabaseConfig) *fiber.App {
 	app := fiber.New()
+
+	app.Use(cors.New(cors.Config{
+		AllowHeaders:     "Origin, Content-Type, Accept, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, x-api-key",
+		AllowCredentials: true,
+	}))
 
 	controllers.AuthController(app)
 	controllers.CardController(app)
