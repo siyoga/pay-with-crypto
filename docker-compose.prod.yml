@@ -9,7 +9,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - db-storage:/data
+      - db-storage:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_DB=${DATABASE_NAME}
