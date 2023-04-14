@@ -258,3 +258,44 @@ func ValidateTag(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(utility.Message{Text: response})
 }
+
+// @Description Get all companies
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} []datastore.Company
+// @Router /admin/getAllCompanies [get]
+func GetAllCompanies(c *fiber.Ctx) error {
+	result, state := db.GetAllOrdered[db.Company]("is_del", "0", "name")
+	if !state {
+		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "No companies!"})
+	}
+
+	return (c.Status(fiber.StatusOK).JSON(result))
+}
+
+// @Description Delete tag
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param company_data body object{id=string} true "Company data"
+// @Success 204 "Tag successful deleted"
+// @Failure 400 {object} utility.Message "Invalid request"
+// @Failure 500 {object} utility.Message "Internal server error"
+// @Router /admin/deleteTag [delete]
+func TagDeleteHandler(c *fiber.Ctx) error {
+	var tag db.Tag
+	var state bool
+
+	if err := c.BodyParser(&tag); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request"})
+	}
+
+	if state = db.DeleteBy[db.Tag]("id", tag.ID); !state {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+	}
+
+	return c.Status(200).JSON(utility.Message{Text: "Tag is deleted."})
+}
