@@ -51,35 +51,29 @@ require (
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/plugin/soft_delete v1.2.0
+)
+
+require (
+	github.com/go-ping/ping v1.1.0
+	github.com/gofiber/swagger v0.1.9
+	github.com/grokify/go-pkce v0.2.0
+	github.com/sethvargo/go-password v0.2.0
+	github.com/swaggo/swag v1.8.11
+	golang.org/x/oauth2 v0.6.0
 )
 
 require (
 	cloud.google.com/go/compute/metadata v0.2.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
-	github.com/PuerkitoBio/purell v1.2.0 // indirect
-	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
-	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/spec v0.20.8 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
-	github.com/go-ping/ping v1.1.0 // indirect
-	github.com/gofiber/swagger v0.1.9 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/grokify/go-pkce v0.2.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/sethvargo/go-password v0.2.0 // indirect
-	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/swaggo/files v1.0.1 // indirect
-	github.com/swaggo/swag v1.8.11 // indirect
-	github.com/urfave/cli/v2 v2.25.0 // indirect
-	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	golang.org/x/oauth2 v0.6.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

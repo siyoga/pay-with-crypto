@@ -225,53 +225,48 @@ func Auth[T Authable](name string) (T, bool) {
 
 func SearchCardByName(value string) ([]Card, bool) {
 	var cards []Card
-	var state bool
 
-	if result := Datastore.Where("name LIKE ?", "%"+value+"%").Find(&cards); result.Error != nil {
+	if result := Datastore.
+		Debug().
+		Where("name LIKE ?", "%"+value+"%").
+		Find(&cards); result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "SearchCardByName")
 		}
-		state = false
+		return cards, false
 	}
 
-	return cards, state
+	return cards, true
 }
 
 func SearchCard(name string, tags string) ([]Card, bool) {
 	var cards []Card
-	var state bool
 
 	splitedTags := pq.StringArray(strings.Split(tags, "&"))
 
-	if result := Datastore.Where("name LIKE ? AND Tags && ?", "%"+name+"%", splitedTags).Find(&cards); result.Error != nil {
+	if result := Datastore.Debug().Where("name LIKE ? AND Tags && ?", "%"+name+"%", splitedTags).Find(&cards); result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "SearchCard")
 		}
-		state = false
+		return cards, false
 	}
 
-	state = true
-
-	return cards, state
+	return cards, true
 }
 
 func SearchCardsByTags(rawTags string) ([]Card, bool) {
 	var cards []Card
-	var state bool
 
 	splitedTags := pq.StringArray(strings.Split(rawTags, "&"))
 
-	if result := Datastore.Where("Tags && ?", splitedTags).Find(&cards); result.Error != nil {
+	if result := Datastore.Debug().Where("Tags && ?", splitedTags).Find(&cards); result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "SearchCardsByTags")
 		}
-
-		state = false
+		return cards, false
 	}
 
-	state = true
-
-	return cards, state
+	return cards, true
 }
 
 // Эту функцию не меняй на дженерик
