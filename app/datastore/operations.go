@@ -227,7 +227,6 @@ func SearchCardByName(value string) ([]Card, bool) {
 	var cards []Card
 
 	if result := Datastore.
-		Debug().
 		Where("name LIKE ?", "%"+value+"%").
 		Find(&cards); result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
@@ -244,7 +243,7 @@ func SearchCard(name string, tags string) ([]Card, bool) {
 
 	splitedTags := pq.StringArray(strings.Split(tags, "&"))
 
-	if result := Datastore.Debug().Where("name LIKE ? AND Tags && ?", "%"+name+"%", splitedTags).Find(&cards); result.Error != nil {
+	if result := Datastore.Where("name LIKE ? AND Tags && ?", "%"+name+"%", splitedTags).Find(&cards); result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "SearchCard")
 		}
@@ -259,7 +258,7 @@ func SearchCardsByTags(rawTags string) ([]Card, bool) {
 
 	splitedTags := pq.StringArray(strings.Split(rawTags, "&"))
 
-	if result := Datastore.Debug().Where("Tags && ?", splitedTags).Find(&cards); result.Error != nil {
+	if result := Datastore.Where("Tags && ?", splitedTags).Find(&cards); result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "SearchCardsByTags")
 		}
