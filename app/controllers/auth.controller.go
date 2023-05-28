@@ -12,6 +12,7 @@ func AuthController(a *fiber.App) {
 
 	route.Get("/google/register", handlers.AuthGoogleGetApprove)
 	route.Get("/google/callback", handlers.Callback)
+	route.Get("/whoami", handlers.WhoAmIHandler)
 	route.Get("/google/login", handlers.AuthGoogleGetApprove) //TODO!: Separate login from register. Now when register we login
 	route.Post("/tokenUpdate", handlers.UpdateTokensHandler)
 	route.Post("/register", handlers.RegisterHandler)

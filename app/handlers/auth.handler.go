@@ -254,6 +254,37 @@ func AuthGoogleLoginUser(c *fiber.Ctx, userdata db.Company) (utility.JWTTokenPai
 	return response, nil
 }
 
+func WhoAmIHandler(c *fiber.Ctx) error {
+	accessTokenString := c.Get("accessToken")
+
+	type Claims struct {
+		Sub       string    `json:"sub"`
+		Generated time.Time `json:"generated"`
+		jwt.StandardClaims
+	}
+
+	accessTokenClaims := &Claims{}
+
+	accessToken, err := jwt.ParseWithClaims(accessTokenString, accessTokenClaims, func(token *jwt.Token) (interface{}, error) {
+		return []byte("secretAccessKey"), nil
+	})
+
+	if err != nil {
+		return fiber.ErrInternalServerError
+	}
+
+	if !accessToken.Valid {
+		return fiber.ErrUnauthorized
+	}
+
+	company, ok := db.GetOneBy[db.Company]("id", accessTokenClaims.Sub)
+	if !ok {
+		return fiber.ErrInternalServerError
+	}
+
+	return c.JSON(company)
+}
+
 func generateTokenResponse(ID uuid.UUID) (utility.JWTTokenPair, []error) {
 	payload := jwt.MapClaims{
 		"sub":       ID,
