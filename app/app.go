@@ -13,7 +13,7 @@ func Start(config db.DatabaseConfig) *fiber.App {
 	app := fiber.New()
 
 	app.Use(cors.New(cors.Config{
-		AllowHeaders:     "Origin, Content-Type, Accept, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, x-api-key",
+		AllowHeaders:     "Origin, Content-Type, Accept, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, x-api-key, accessToken",
 		AllowCredentials: true,
 	}))
 
