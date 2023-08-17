@@ -129,6 +129,49 @@ func GetUserData(tokens *GoogleOauthToken) (*GoogleUserResult, error) {
 	return userBody, nil
 }
 
+func GetInfoByIdToken(idToken string) (GoogleIDToken, GoogleErrorResponse, error) {
+	var info GoogleIDToken
+	var errorResp GoogleErrorResponse
+
+	url := fmt.Sprintf("https://oauth2.googleapis.com/tokeninfo?id_token=%s", idToken)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return GoogleIDToken{}, GoogleErrorResponse{}, err
+	}
+
+	client := http.Client{
+		Timeout: time.Second * 30,
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return GoogleIDToken{}, GoogleErrorResponse{}, err
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return GoogleIDToken{}, GoogleErrorResponse{}, err
+	}
+
+	err = json.Unmarshal(body, &info)
+	if err != nil {
+		return GoogleIDToken{}, GoogleErrorResponse{}, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		err = json.Unmarshal(body, &errorResp)
+		if err != nil {
+			return GoogleIDToken{}, GoogleErrorResponse{}, err
+		}
+		return GoogleIDToken{}, errorResp, nil
+	}
+
+	return info, GoogleErrorResponse{}, nil
+}
+
 func CreatePKCE() *PKCE {
 	NewPKCE := PKCE{
 		pkce.NewCodeVerifier(),

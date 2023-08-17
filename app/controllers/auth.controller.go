@@ -19,4 +19,5 @@ func AuthController(a *fiber.App) {
 	route.Post("/login", handlers.LoginHandler)
 	route.Post("/admin/register", middleware.AuthAdmin, handlers.AdminRegisterHandler)
 	route.Post("/admin/login", handlers.AdminLoginHandler)
+	route.Post("/google/tokeninfo", handlers.TokenInfo)
 }

@@ -36,7 +36,7 @@ func RegisterHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request body"})
 	}
 
-	if _, exist := db.GetOneBy[db.Company]("name", company.Name); exist {
+	if _, exist := db.GetOneBy[db.Company]("name", company.Username); exist {
 		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Such a company is already created"})
 	}
 
@@ -78,7 +78,7 @@ func LoginHandler(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	company, state := db.Auth[db.Company](requestData.Name)
+	company, state := db.Auth[db.Company](requestData.Username)
 
 	if !state {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid credentials"})
@@ -200,7 +200,7 @@ func Callback(c *fiber.Ctx) error {
 
 	user := db.Company{
 		ID:       uuid.Nil,
-		Name:     UserData.Name,
+		Username: UserData.Name,
 		Image:    UserData.Picture,
 		Password: res,
 		Mail:     UserData.Email,
@@ -285,10 +285,72 @@ func WhoAmIHandler(c *fiber.Ctx) error {
 	return c.JSON(company)
 }
 
+func TokenInfo(c *fiber.Ctx) error {
+	var company db.Company
+
+	emptyErr := googleutil.GoogleErrorResponse{}
+
+	idToken := c.Get("Authorization", "")
+	if idToken == "" {
+		return fiber.ErrBadRequest
+	}
+
+	info, googleErr, err := googleutil.GetInfoByIdToken(idToken)
+	if googleErr != emptyErr {
+		return c.Status(401).JSON(googleErr)
+	}
+	if err != nil {
+		return c.Status(500).JSON(err)
+	}
+
+	company.Username = info.Name
+
+	if _, exist := db.GetOneBy[db.Company]("username", company.Username); exist {
+		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Such a company is already created"})
+	}
+
+	company.ID = uuid.Must(uuid.NewV4())
+	company.Mail = info.Email
+	company.CreatedAt = time.Now()
+	company.ViaGoogle = true
+
+	hash, err := bcrypt.GenerateFromPassword([]byte("auth_by_google"), 12)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+	}
+	company.Password = string(hash)
+
+	tokens, errs := generateTokenResponse(company.ID)
+	if errs[0] != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+	}
+	if errs[1] != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+	}
+
+	if ok := db.Add(company); !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+	}
+
+	refreshToken := db.RefreshToken{
+		CompanyID: company.ID,
+		Token:     tokens.RefreshToken,
+	}
+
+	company.RefreshToken = refreshToken
+
+	if ok := db.Add(refreshToken); !ok {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(utility.Message{Text: "OK"})
+}
+
 func generateTokenResponse(ID uuid.UUID) (utility.JWTTokenPair, []error) {
 	payload := jwt.MapClaims{
 		"sub":       ID,
 		"generated": time.Now().Add(15 * 24 * time.Hour),
+		"dead":      time.Now().Add(15 * 24 * time.Hour).Add(15 * time.Minute),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
