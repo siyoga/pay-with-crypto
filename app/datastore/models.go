@@ -31,15 +31,19 @@ type (
 
 	Company struct {
 		ID            uuid.UUID             `json:"id" gorm:"type:uuid"`
-		Name          string                `json:"name" gorm:"type:string;unique"`
+		Username      string                `json:"username" gorm:"type:string;unique"`
 		Image         string                `json:"image" gorm:"type:string"`
 		Password      string                `json:"-" gorm:"type:string"`
 		Mail          string                `json:"mail" gorm:"type:string"`
 		LinkToCompany string                `json:"linkToCompany" gorm:"type:string"`
-		Cards         []Card                `json:"cards" gorm:"foreignKey:CompanyID"`
+		ViaGoogle     bool                  `json:"viaGoogle" gorm:"default:false"`
+		CreatedAt     time.Time             `json:"createdAt" gorm:"type:time"`
+		UpdateAt      time.Time             `json:"updatedAt" gorm:"type:time"`
 		DeletedAt     time.Time             `json:"deletedAt" gorm:"type:time"`
+		Cards         []Card                `json:"cards" gorm:"foreignKey:CompanyID"`
 		IsDel         soft_delete.DeletedAt `json:"is_del" gorm:"softDelete:flag,DeletedAtField:DeletedAt"`
 		CreatedTags   []Tag                 `json:"created_tags" gorm:"foreignKey:CreatorID"`
+		RefreshToken  RefreshToken          `json:"refresh_token" gorm:"foreignKey:CompanyID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	}
 
 	Card struct {
@@ -75,6 +79,7 @@ type (
 	}
 
 	RefreshToken struct {
-		Token string `json:"token" gorm:"type:string"`
+		CompanyID uuid.UUID `json:"company_id" gorm:"type:uuid"`
+		Token     string    `json:"token" gorm:"type:string"`
 	}
 )

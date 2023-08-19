@@ -38,6 +38,23 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 	return i, true
 }
 
+func GetOneByWithPreload[T All](key, preload string, value interface{}) (T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
+	var i T
+
+	result := Datastore.Where(map[string]interface{}{key: value}).Preload(preload).First(&i)
+
+	if result.Error != nil {
+		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
+			util.Error(result.Error, "GetOneBy")
+		}
+
+		return i, false
+
+	}
+
+	return i, true
+}
+
 func GetOneUnscopedBy[T All](key string, value interface{}) (T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
 	var i T
 
@@ -272,7 +289,7 @@ func SearchCardsByTags(rawTags string) ([]Card, bool) {
 func GetUserById(companyId string) (Company, bool) {
 	var company Company
 
-	result := Datastore.Model(Company{}).Where(map[string]interface{}{"id": companyId}).Preload("Cards").First(&company)
+	result := Datastore.Model(Company{}).Where(map[string]interface{}{"id": companyId}).Preload("Cards").Preload("RefreshTokens").First(&company)
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "GetUserById")
