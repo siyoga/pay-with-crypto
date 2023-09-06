@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/grokify/go-pkce"
@@ -129,9 +130,11 @@ func GetUserData(tokens *GoogleOauthToken) (*GoogleUserResult, error) {
 	return userBody, nil
 }
 
-func GetInfoByIdToken(idToken string) (GoogleIDToken, GoogleErrorResponse, error) {
+func GetInfoByIdToken(authHeader string) (GoogleIDToken, GoogleErrorResponse, error) {
 	var info GoogleIDToken
 	var errorResp GoogleErrorResponse
+
+	idToken := strings.Split(authHeader, "Bearer ")[1]
 
 	url := fmt.Sprintf("https://oauth2.googleapis.com/tokeninfo?id_token=%s", idToken)
 
@@ -141,10 +144,11 @@ func GetInfoByIdToken(idToken string) (GoogleIDToken, GoogleErrorResponse, error
 	}
 
 	client := http.Client{
-		Timeout: time.Second * 30,
+		Timeout: time.Second * 5,
 	}
 
 	res, err := client.Do(req)
+
 	if err != nil {
 		return GoogleIDToken{}, GoogleErrorResponse{}, err
 	}

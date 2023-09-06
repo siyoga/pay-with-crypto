@@ -226,10 +226,10 @@ func ScopeCompanyByIdWithCards(companyID uuid.UUID) bool {
 	return true
 }
 
-func Auth[T Authable](name string) (T, bool) {
+func Auth[T Authable](email string) (T, bool) {
 	var item T
 
-	result := Datastore.Where("name = ?", name).Find(&item)
+	result := Datastore.Where("email = ?", email).Find(&item)
 	if result.Error != nil {
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Records Not Found" write error to log
 			util.Error(result.Error, "Auth")
