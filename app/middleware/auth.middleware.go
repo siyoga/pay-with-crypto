@@ -4,6 +4,7 @@ import (
 	"fmt"
 	db "pay-with-crypto/app/datastore"
 	"pay-with-crypto/app/utility"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
@@ -12,19 +13,21 @@ import (
 func Auth(c *fiber.Ctx) error {
 	var userid string
 
-	hmacSampleSecret := "secretAccessKey"
+	accessKey := utility.GetEnv("ACCESS_SECRET", "secretAccessKey")
 
-	tokenString := c.Get("accessToken")
-	if tokenString == "" {
-		return fiber.ErrUnauthorized
+	authHeader := strings.Split(c.Get("Authorization"), " ")
+	if len(authHeader) <= 1 {
+		return c.Status(fiber.StatusUnauthorized).JSON(utility.Message{Text: "Invalid token format"})
 	}
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	accessToken := authHeader[1]
+
+	token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte(hmacSampleSecret), nil
+		return []byte(accessKey), nil
 	})
 
 	if err != nil {

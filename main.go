@@ -7,23 +7,9 @@ import (
 	"pay-with-crypto/app"
 	db "pay-with-crypto/app/datastore"
 
-	hand "pay-with-crypto/app/handlers"
-
-	_ "pay-with-crypto/docs"
-
-	"github.com/gofiber/swagger"
 	"github.com/joho/godotenv"
 )
 
-// @title pay-with-crypto API
-// @version 1.0
-// @description Nenavijy swagger
-// @license.name BSD-3
-// @host pay-with-crypto.xyz
-// @BasePath /
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name accessToken
 func main() {
 	prod := flag.Bool("p", false, "Flag for production run")
 	flag.Parse()
@@ -46,10 +32,6 @@ func main() {
 	}
 
 	server := app.Start(config)
-
-	server.Get("/swagger/*", swagger.HandlerDefault)
-
-	hand.CreateFirstAdmin()
 
 	if err := server.Listen(":8081"); err != nil {
 		log.Panic(err)

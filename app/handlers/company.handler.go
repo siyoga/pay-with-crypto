@@ -1,7 +1,8 @@
 package handlers
 
 import (
-	"os"
+	"fmt"
+	"path/filepath"
 	db "pay-with-crypto/app/datastore"
 	"pay-with-crypto/app/datastore/s3"
 	"pay-with-crypto/app/utility"
@@ -9,17 +10,27 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// @Description Search company by id
-// @Tags Company
-// @Accept json
-// @Produce json
-// @Param id query string true "Company id"
-// @Success 200 {object} datastore.Company
-// @Failure 400 {object} utility.Message "Invalid request"
-// @Failure 404 {object} utility.Message "No card"
-// @Failure 403 {object} utility.Message "Card owner was banned"
-// @Router /company/search/id [get]
-func CompanyGetByIdHandler(c *fiber.Ctx) error {
+func UpdateHandler(c *fiber.Ctx) error {
+	var request utility.UpdateInfoRequest
+	company := c.Locals("company").(db.Company)
+
+	if err := c.BodyParser(&request); err != nil {
+		fmt.Println(err)
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request body"})
+	}
+
+	company.Image = request.Image
+	company.LinkToCompany = request.Link
+	company.Name = request.Name
+
+	if !db.WholeOneUpdate(company) {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Failed to update entity on server"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(company)
+}
+
+func GetByIdHandler(c *fiber.Ctx) error {
 	var company db.Company
 	var state bool
 
@@ -41,48 +52,36 @@ func CompanyGetByIdHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(company)
 }
 
-// @Description Company logo uploader
-// @Tags Company
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Param companyLogo formData file true "Logo image"
-// @Success 204 "Company logo successful uploaded"
-// @Failure 400 {object} utility.Message "Invalid request, log in"
-// @Failure 400 {object} utility.Message "Invalid request, provide companyLogo"
-// @Failure 500 {object} utility.Message "Internal server error"
-// @Router /company/uploadLogo [post]
-func CompanyLogoUploaderHandler(c *fiber.Ctx) error {
-	logoBucket := os.Getenv("S3_BUCKET_COMPANY_LOGOS")
-	companyLogo, err := c.FormFile("companyLogo")
+func LogoUploadHandler(c *fiber.Ctx) error {
+	companyLogoRaw, err := c.FormFile("companyLogo")
 	company := c.Locals("company").(db.Company)
 
-	companyId := company.ID.String()
-
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request, log in to account"})
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request"})
 	}
 
-	companyLogoBuffer, err := companyLogo.Open()
+	companyLogo, err := companyLogoRaw.Open()
 
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request, provide companyLogo"})
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request, provide companyLogo correctly"})
 	}
 
-	defer companyLogoBuffer.Close()
+	defer companyLogo.Close()
 
-	fileName := companyId + "_logo"
-	fileNameInS3, isUploadOk := s3.UploadFile(companyLogo, companyLogoBuffer, logoBucket, fileName)
+	fileName := company.ID.String() + "_logo" + filepath.Ext(companyLogoRaw.Filename)
+	s3.DeleteImage(fileName) // чтобы обезопаситься от дубликатов
+
+	fileLink, isUploadOk := s3.UploadFile(companyLogo, fileName)
 
 	if !isUploadOk {
 		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
 	}
 
-	_, isUpdateOk := db.UpdateOneBy[db.Company]("id", companyId, "image", *fileNameInS3)
+	company, isUpdateOk := db.UpdateOneBy[db.Company]("id", company.ID, "image", fileLink)
 
 	if !isUpdateOk {
 		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
 	}
 
-	return c.SendStatus(fiber.StatusNoContent)
+	return c.Status(fiber.StatusOK).JSON(company)
 }

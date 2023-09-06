@@ -4,116 +4,50 @@ import (
 	"fmt"
 	db "pay-with-crypto/app/datastore"
 	"pay-with-crypto/app/utility"
-	googleutil "pay-with-crypto/app/utility/google.util"
+	google "pay-with-crypto/app/utility/google"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt"
 
-	"net/mail"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
-// @Description Create company.
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param company_data body object{name=string,password=string,linkToCompany=string,mail=string} true "Company data"
-// @Success 201 {object} datastore.Company
-// @Failure 409 {object} utility.Message "Company already created"
-// @Failure 400 {object} utility.Message "Invalid company email"
-// @Failure 500 {object} utility.Message "Internal server error"
-// @Router /auth/register [post]
-func RegisterHandler(c *fiber.Ctx) error {
-	var company db.Company
+func LoginHandler(c *fiber.Ctx) error {
+	var request db.Company
+	var refreshToken db.RefreshToken
 
-	if err := c.BodyParser(&company); err != nil {
+	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request body"})
 	}
 
-	if _, exist := db.GetOneBy[db.Company]("name", company.Username); exist {
-		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Such a company is already created"})
-	}
-
-	_, err := mail.ParseAddress(company.Mail)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Enter a valid email address"})
-	}
-
-	company.ID = uuid.Must(uuid.NewV4())
-
-	hash, err := bcrypt.GenerateFromPassword([]byte(company.Password), 12)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
-	}
-	company.Password = string(hash)
-
-	if ok := db.Add(company); !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
-	}
-
-	return c.Status(fiber.StatusCreated).JSON(company)
-}
-
-// @Description Login to company account.
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param login_data body object{name=string,password=string} true "Company login data"
-// @Success 200 {object} utility.JWTTokenPair
-// @Failure 409 {object} utility.Message "Company already created"
-// @Failure 400 {object} utility.Message "Invalid company email"
-// @Failure 500 {object} utility.Message "Internal server error"
-// @Router /auth/login [post]
-func LoginHandler(c *fiber.Ctx) error {
-	var requestData db.Company
-	var refreshToken db.RefreshToken
-
-	if err := c.BodyParser(&requestData); err != nil {
-		return fiber.ErrBadRequest
-	}
-
-	company, state := db.Auth[db.Company](requestData.Username)
+	company, state := db.Auth[db.Company](request.Email)
 
 	if !state {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid credentials"})
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(company.Password), []byte(requestData.Password)); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid credentials"})
+	if !company.ViaGoogle {
+		if err := bcrypt.CompareHashAndPassword([]byte(company.Password), []byte(request.Password)); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid credentials"})
+		}
 	}
 
-	response, errs := generateTokenResponse(company.ID)
-	if errs[0] != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
-	}
-	if errs[1] != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
-	}
+	tokens := generateTokens(company.ID)
 
-	refreshToken.Token = response.RefreshToken
+	refreshToken.Token = tokens.RefreshToken
+	refreshToken.CompanyID = company.ID
 
 	if ok := db.Add(refreshToken); !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something went wrong on our side"})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response)
+	return c.Status(fiber.StatusOK).JSON(tokens)
 }
 
-// @Description Update tokens.
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param token body object{token=string} true "Refresh token"
-// @Success 200 {object} utility.JWTTokenPair
-// @Failure 409 {object} utility.Message "Token already created"
-// @Failure 400 {object} utility.Message "Refresh token was not provided"
-// @Failure 400 {object} utility.Message "Can't update refresh token"
-// @Failure 500 {object} utility.Message "Internal server error"
-// @Router /auth/tokenUpdate [post]
-func UpdateTokensHandler(c *fiber.Ctx) error {
+func RefreshHandler(c *fiber.Ctx) error {
 	var refreshToken db.RefreshToken
 
 	if err := c.BodyParser(&refreshToken); err != nil {
@@ -130,155 +64,127 @@ func UpdateTokensHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid refresh token, try log in"})
 	}
 
-	response, errs := generateTokenResponse(uuid.FromStringOrNil(userId))
-	if errs[0] != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
-	}
-	if errs[1] != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
-	}
+	response := generateTokens(uuid.FromStringOrNil(userId))
 
 	if _, ok := db.UpdateOneBy[db.RefreshToken]("token", string(refreshToken.Token), "token", string(response.RefreshToken)); !ok {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Can't update refresh token"})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
-
-}
-
-func AuthGoogleLoginUser(c *fiber.Ctx, userdata db.Company) (utility.JWTTokenPair, error) {
-	var refreshToken db.RefreshToken
-
-	response, errs := generateTokenResponse(userdata.ID)
-	if errs[0] != nil {
-		return utility.JWTTokenPair{}, errs[0]
-	}
-	if errs[1] != nil {
-		return utility.JWTTokenPair{}, errs[1]
-	}
-
-	refreshToken.Token = response.RefreshToken
-
-	if ok := db.Add(refreshToken); !ok {
-		return utility.JWTTokenPair{}, fiber.ErrBadRequest
-	}
-
-	return response, nil
 }
 
 func WhoAmIHandler(c *fiber.Ctx) error {
-	accessTokenString := c.Get("accessToken")
+	authHeader := c.Get("Authorization")
 
-	type Claims struct {
-		Sub       string    `json:"sub"`
-		Generated time.Time `json:"generated"`
-		jwt.StandardClaims
-	}
+	atSecretKey := utility.GetEnv("ACCESS_SECRET", "secretAccessKey")
+	accessToken := strings.Split(authHeader, "Bearer ")[1]
+	claims := &utility.Claims{}
 
-	accessTokenClaims := &Claims{}
-
-	accessToken, err := jwt.ParseWithClaims(accessTokenString, accessTokenClaims, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secretAccessKey"), nil
+	accessTokenPayload, err := jwt.ParseWithClaims(accessToken, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(atSecretKey), nil
 	})
 
 	if err != nil {
-		return fiber.ErrInternalServerError
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something went wrong on our side"})
 	}
 
-	if !accessToken.Valid {
-		return fiber.ErrUnauthorized
+	if !accessTokenPayload.Valid {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Invalid token"})
 	}
 
-	company, ok := db.GetOneBy[db.Company]("id", accessTokenClaims.Sub)
+	company, ok := db.GetOneBy[db.Company]("id", claims.Sub)
 	if !ok {
-		return fiber.ErrInternalServerError
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something went wrong on our side"})
 	}
 
 	return c.JSON(company)
 }
 
-func GoogleRegisterHandler(c *fiber.Ctx) error {
+func RegisterHandler(c *fiber.Ctx) error {
+	var registerInfoRequest utility.RegisterInfoRequest
 	var company db.Company
+	var gToken string
 
-	emptyErr := googleutil.GoogleErrorResponse{}
-
-	idToken := c.Get("Authorization", "")
-	if idToken == "" {
-		return fiber.ErrBadRequest
+	if err := c.BodyParser(&registerInfoRequest); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(utility.Message{Text: "Invalid register payload"})
 	}
 
-	info, googleErr, err := googleutil.GetInfoByIdToken(idToken)
-	if googleErr != emptyErr {
-		return c.Status(401).JSON(googleErr)
-	}
-	if err != nil {
-		return c.Status(500).JSON(err)
-	}
+	company.Email = registerInfoRequest.Email
 
-	company.Username = info.Name
+	existUser, isOk := db.GetOneBy[db.Company]("email", company.Email)
 
-	if _, exist := db.GetOneBy[db.Company]("username", company.Username); exist {
-		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Such a company is already created"})
+	if isOk {
+		return c.Status(fiber.StatusOK).JSON(existUser)
 	}
 
 	company.ID = uuid.Must(uuid.NewV4())
-	company.Mail = info.Email
+
 	company.CreatedAt = time.Now()
-	company.ViaGoogle = true
+	company.UpdateAt = time.Now()
 
-	hash, err := bcrypt.GenerateFromPassword([]byte("auth_by_google"), 12)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
-	}
-	company.Password = string(hash)
+	// Здесь добавляем другие провайдеры, в том числе и простой вход через почту.
+	if registerInfoRequest.ViaGoogle {
+		company.ViaGoogle = true
 
-	tokens, errs := generateTokenResponse(company.ID)
-	if errs[0] != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
-	}
-	if errs[1] != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+		gToken = c.Get("Authorization", "")
+		if gToken == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(utility.Message{Text: "Invalid id_token"})
+		}
+
+		_, gErr, err := google.GetInfoByIdToken(gToken)
+		if gErr != (google.GoogleErrorResponse{}) {
+			return c.Status(fiber.StatusUnauthorized).JSON(utility.Message{Text: "Invalid id_token"})
+		}
+
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something went wrong on our side"})
+		}
+
+		password := uuid.Must(uuid.NewV4()).String()
+		hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something went wrong on our side"})
+		}
+
+		company.Password = string(hash)
 	}
 
 	if ok := db.Add(company); !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something went wrong on our side"})
 	}
 
-	refreshToken := db.RefreshToken{
-		CompanyID: company.ID,
-		Token:     tokens.RefreshToken,
-	}
-
-	company.RefreshToken = refreshToken
-
-	if ok := db.Add(refreshToken); !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
-	}
-
-	return c.Status(fiber.StatusOK).JSON(utility.Message{Text: "OK"})
+	return c.Status(fiber.StatusCreated).JSON(company)
 }
 
-func generateTokenResponse(ID uuid.UUID) (utility.JWTTokenPair, []error) {
-	payload := jwt.MapClaims{
+// ---------------------PRIVATE------------------------
+
+func generateTokens(ID uuid.UUID) utility.JWTTokenPair {
+	var tokens utility.JWTTokenPair
+
+	atPayload := jwt.MapClaims{
 		"sub":       ID,
-		"generated": time.Now().Add(15 * 24 * time.Hour),
-		"dead":      time.Now().Add(15 * 24 * time.Hour).Add(15 * time.Minute),
+		"generated": time.Now(),
+		"dead":      time.Now().Add(24 * time.Hour),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
-	var response utility.JWTTokenPair
-	errors := make([]error, 2)
+	rtPayload := jwt.MapClaims{
+		"sub":       ID,
+		"generated": time.Now(),
+		"dead":      time.Now().Add(7 * 24 * time.Hour),
+	}
 
-	accessToken, err_access := token.SignedString([]byte("secretAccessKey"))
-	refreshToken, err_refresh := token.SignedString([]byte("secretRefreshKey"))
+	atSecretKey := utility.GetEnv("ACCESS_SECRET", "secretAccessKey")
+	rtSecretKey := utility.GetEnv("REFRESH_SECRET", "secretRefreshKey")
 
-	response.AccessToken = accessToken
-	response.RefreshToken = refreshToken
+	fmt.Print(atSecretKey, rtSecretKey)
 
-	errors[0] = err_access
-	errors[1] = err_refresh
+	accessToken, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, atPayload).SignedString([]byte(atSecretKey))
+	refreshToken, _ := jwt.NewWithClaims(jwt.SigningMethodHS256, rtPayload).SignedString([]byte(rtSecretKey))
 
-	return response, errors
+	tokens.AccessToken = accessToken
+	tokens.RefreshToken = refreshToken
+
+	return tokens
 }
 
 func unwrapRefreshJWT(tokenString string) (string, bool) {
