@@ -30,7 +30,7 @@ func UpdateHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(company)
 }
 
-func GetByIdHandler(c *fiber.Ctx) error {
+func GetHandler(c *fiber.Ctx) error {
 	var company db.Company
 	var state bool
 
@@ -40,12 +40,9 @@ func GetByIdHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request"})
 	}
 
-	company, state = db.GetUserById(companyId)
+	company, state = db.GetOneBy[db.Company]("id", companyId)
 
 	if !state {
-		if _, state = db.GetOneUnscopedBy[db.Card]("id", companyId); state {
-			return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "Owner of card was banned"})
-		}
 		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Company not exist"})
 	}
 
