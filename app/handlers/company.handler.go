@@ -40,7 +40,7 @@ func GetHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request"})
 	}
 
-	company, state = db.GetOneBy[db.Company]("id", companyId)
+	company, state = db.GetOneByWithPreload[db.Company]("id", "Cards", companyId)
 
 	if !state {
 		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Company not exist"})
@@ -49,7 +49,7 @@ func GetHandler(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(company)
 }
 
-func LogoUploadHandler(c *fiber.Ctx) error {
+func CompanyLogoUploadHandler(c *fiber.Ctx) error {
 	companyLogoRaw, err := c.FormFile("companyLogo")
 	company := c.Locals("company").(db.Company)
 

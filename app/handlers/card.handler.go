@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"fmt"
+	"path/filepath"
+	d "pay-with-crypto/app/datastore"
 	db "pay-with-crypto/app/datastore"
+	"pay-with-crypto/app/datastore/s3"
 	"pay-with-crypto/app/utility"
 
 	"github.com/go-ping/ping"
@@ -10,142 +13,69 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-// @Description Search card
-// @Tags Card
-// @Accept json
-// @Produce json
-// @Param name query string false "Card name"
-// @Param tags query string false "Card tags"
-// @Success 200 {object} []datastore.Card
-// @Failure 404 {object} utility.Message "No cards"
-// @Router /card/search [get]
-func CardsSearcher(c *fiber.Ctx) error {
-	var result []db.Card
-	var state bool
+func CardLogoUploadHandler(c *fiber.Ctx) error {
+	cardLogoRaw, err := c.FormFile("cardLogo")
+	cardId := c.Get("Card")
 
-	name := c.Query("name")
-	tags := c.Query("tags")
-
-	if name != "" && tags != "" {
-		result, state = db.SearchCard(name, tags)
-	} else if name != "" {
-		result, state = db.SearchCardByName(name)
-	} else if tags != "" {
-		result, state = db.SearchCardsByTags(tags)
-	}
-
-	if !state {
-		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "No cards with appropriate parameters found"})
-	}
-
-	return c.Status(fiber.StatusOK).JSON(result)
-}
-
-// @Description Search card by id
-// @Tags Card
-// @Accept json
-// @Produce json
-// @Param cardId query string true "Card id"
-// @Success 200 {object} datastore.Card
-// @Failure 400 {object} utility.Message "Invalid request"
-// @Failure 404 {object} utility.Message "No card"
-// @Failure 403 {object} utility.Message "Card owner was banned"
-// @Failure 500 {object} utility.Message "Internal server error"
-// @Router /card/search/id [get]
-func CardsSearcherByIdHandler(c *fiber.Ctx) error {
-	var result db.Card
-	var state bool
-
-	id := c.Query("cardId")
-
-	if id == "" {
+	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request"})
 	}
 
-	if result, state = db.GetOneBy[db.Card]("id", id); !state {
-		if result, state = db.GetOneUnscopedBy[db.Card]("id", id); state {
-			return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "Owner of card was banned"})
-		}
-		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Card not exist"})
+	card, isOk := d.GetOneBy[d.Card]("id", cardId)
+
+	if !isOk {
+		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Card not found"})
 	}
 
-	result.Views++
+	cardLogo, err := cardLogoRaw.Open()
 
-	if !db.WholeOneUpdate(result) {
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request, provide companyLogo correctly"})
+	}
+
+	defer cardLogo.Close()
+
+	fileName := card.ID.String() + "_logo" + filepath.Ext(cardLogoRaw.Filename)
+	s3.DeleteImage(fileName) // чтобы обезопаситься от дубликатов
+
+	fileLink, isUploadOk := s3.UploadFile(cardLogo, fileName)
+
+	if !isUploadOk {
 		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(result)
+	card, isUpdateOk := db.UpdateOneBy[db.Card]("id", card.ID, "logoLink", fileLink)
+
+	if !isUpdateOk {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(card)
 }
 
-// @Description Get card logo
-// @Tags Card
-// @Accept json
-// @Produce json
-// @Param cardId query string true "Card id"
-// @Success 200 {object} utility.Message "Card logo link"
-// @Failure 400 {object} utility.Message "Invalid request"
-// @Failure 404 {object} utility.Message "No card"
-// @Router /card/getLogo [get]
-func CardLogoGetterHandler(c *fiber.Ctx) error {
-	cardId := c.Query("cardId")
-
-	if cardId == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request"})
-	}
-
-	card, state := db.GetOneBy[db.Card]("id", cardId)
-
-	if !state {
-		if _, state = db.GetOneUnscopedBy[db.Card]("id", cardId); state {
-			return c.Status(fiber.StatusForbidden).JSON(utility.Message{Text: "Owner of card was banned"})
-		}
-		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "Card not exist"})
-	}
-
-	var output string
-
-	if card.LogoLink == "" {
-		output = ""
-	} else {
-		output = fmt.Sprintf("http://217.25.95.4:9000/card-logos/%s", card.LogoLink)
-	}
-
-	return c.Status(200).JSON(utility.Message{Text: output})
-}
-
-// @Description Card create
-// @Tags Card
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Param card_data body object{name=string,description=string,price=string,linkToProd=string,tags=[]string} true "Card data"
-// @Success 201 {object} datastore.Card "Card successful created"
-// @Failure 400 {object} utility.Message "Invalid request"
-// @Failure 409 {object} utility.Message "Already created"
-// @Failure 500 {object} utility.Message "Internal server error"
-// @Router /card/create [post]
 func CardCreatorHandler(c *fiber.Ctx) error {
 	var newCard db.Card
 	company := c.Locals("company").(db.Company)
 
 	if err := c.BodyParser(&newCard); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request"})
+		fmt.Println("err")
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Неверный запрос"})
 	}
 
-	if _, engaged := db.GetOneBy[db.Card]("name", newCard.Name); engaged {
-		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Card with that name already exist"})
+	if _, exist := db.GetOneBy[db.Card]("name", newCard.Name); exist {
+		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Карточка с таким именем уже существует"})
 	}
 
 	pinger, err := ping.NewPinger(newCard.LinkToWebsite)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid link to company."})
+		fmt.Println(err)
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Переданная строка не является ссылкой"})
 	}
 	pinger.Count = 3
 	pinger.TTL = 129
 	err = pinger.Run() // Blocks until finished
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Transmitted link does not respond."})
+		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Ссылка не отвечает"})
 	}
 
 	newCard.ID = uuid.Must(uuid.NewV4())
@@ -153,25 +83,34 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 	newCard.Approved = "pending"
 
 	if ok := db.Add(newCard); !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Something’s wrong with the server. Try it later."})
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Что-то пошло не так, попробуйте позже"})
 	}
 
 	return c.Status(201).JSON(newCard)
 }
 
-// @Description Card delete
-// @Tags Card
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Param card_data body object{id=string} true "Card data"
-// @Success 204 "Card successful deleted"
-// @Failure 400 {object} utility.Message "Invalid request"
-// @Failure 403 {object} utility.Message "Card owner was banned"
-// @Failure 403 {object} utility.Message "Other owner"
-// @Failure 404 {object} utility.Message "No card"
-// @Failure 500 {object} utility.Message "Internal server error"
-// @Router /card/delete [delete]
+func GetCardsByCompany(c *fiber.Ctx) error {
+	companyId := c.Query("id")
+
+	cards, isOk := db.GetManyBy[db.Card]("company_owner", companyId)
+
+	if !isOk {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Что-то пошло не так, попробуйте позже"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(cards)
+}
+
+func CardGetAll(c *fiber.Ctx) error {
+	cards, isOk := db.GetManyBy[db.Card]("approved", "pending")
+
+	if !isOk {
+		return c.Status(fiber.StatusInternalServerError).JSON(utility.Message{Text: "Что-то пошло не так, попробуйте позже"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(cards)
+}
+
 func CardDeleteHandler(c *fiber.Ctx) error {
 	var card db.Card
 	var state bool
@@ -199,19 +138,6 @@ func CardDeleteHandler(c *fiber.Ctx) error {
 	return c.SendStatus(204)
 }
 
-// @Description Card edit
-// @Tags Card
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Param card_data body object{id=string,name=string,description=string,price=string,linkToProd=string,tags=[]string} true "Card data"
-// @Success 200 {object} utility.Message "Card successful edited"
-// @Failure 400 {object} utility.Message "Invalid request"
-// @Failure 403 {object} utility.Message "Card owner was banned"
-// @Failure 403 {object} utility.Message "Other owner"
-// @Failure 404 {object} utility.Message "No card"
-// @Failure 500 {object} utility.Message "Internal server error"
-// @Router /card/edit [put]
 func CardEditHandler(c *fiber.Ctx) error {
 	var changedCard db.Card
 	var state bool
@@ -237,21 +163,4 @@ func CardEditHandler(c *fiber.Ctx) error {
 	}
 
 	return c.Status(200).JSON(utility.Message{Text: "Card successfully edited"})
-}
-
-// @Description Get cards for main page
-// @Tags Card
-// @Accept json
-// @Produce json
-// @Security ApiKeyAuth
-// @Success 200 {object} utility.Message "Card successful edited"
-// @Failure 404 {object} utility.Message "No cards"
-// @Router / [get]
-func ShowFirstCards(c *fiber.Ctx) error {
-	result, state := db.GetAllOrdered[db.Card]("approved", "approved", "views desc")
-	if !state {
-		return c.Status(fiber.StatusNotFound).JSON(utility.Message{Text: "No cards!"})
-	}
-
-	return (c.Status(fiber.StatusOK).JSON(result))
 }

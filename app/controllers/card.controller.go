@@ -10,11 +10,9 @@ import (
 func CardController(a *fiber.App) {
 	route := a.Group("/card")
 
-	a.Get("/", handlers.ShowFirstCards)
-	route.Get("/search", handlers.CardsSearcher)
-	route.Get("/search/id", handlers.CardsSearcherByIdHandler)
-	// route.Post("/uploadLogo", middleware.Auth, handlers.CardLogoUploaderHandler)
-	route.Get("/getLogo", handlers.CardLogoGetterHandler)
+	route.Get("/get", handlers.GetCardsByCompany)
+	route.Get("/get/all", handlers.CardGetAll)
+	route.Post("/logo/upload", middleware.Auth, handlers.CardLogoUploadHandler)
 	route.Post("/create", middleware.Auth, handlers.CardCreatorHandler)
 	route.Delete("/delete", middleware.Auth, handlers.CardDeleteHandler)
 	route.Put("/edit", middleware.Auth, handlers.CardEditHandler)

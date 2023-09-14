@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"errors"
+	"fmt"
 	util "pay-with-crypto/app/utility"
 	"strings"
 
@@ -14,6 +15,7 @@ func Add[T All](i T) bool {
 	result := Datastore.Create(&i)
 
 	if result.Error != nil {
+		fmt.Println(result.Error)
 		util.Error(result.Error, "Add")
 		return false
 	}
@@ -38,12 +40,14 @@ func GetOneBy[T All](key string, value interface{}) (T, bool) { // used in handl
 	return i, true
 }
 
-func GetOneByWithPreload[T All](key, preload string, value interface{}) (T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
+func GetOneByWithPreload[T All](key string, preload string, value interface{}) (T, bool) { // used in handler like: datastore.GetBy[datastore.User]("id", id)
 	var i T
 
 	result := Datastore.Where(map[string]interface{}{key: value}).Preload(preload).First(&i)
 
 	if result.Error != nil {
+		fmt.Println(result.Error)
+
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) { // if error NOT "Record Not Found" write error to log
 			util.Error(result.Error, "GetOneBy")
 		}
@@ -185,7 +189,7 @@ func DeleteBy[T All](key string, value any) bool {
 }
 
 func UnscopeCompanyByIdWithCards(companyID uuid.UUID) bool {
-	company, _ := GetUserById(companyID.String())
+	company, _ := GetCompanyById(companyID.String())
 
 	if len(company.Cards) > 0 {
 		for _, card := range company.Cards {
@@ -286,7 +290,7 @@ func SearchCardsByTags(rawTags string) ([]Card, bool) {
 }
 
 // Эту функцию не меняй на дженерик
-func GetUserById(companyId string) (Company, bool) {
+func GetCompanyById(companyId string) (Company, bool) {
 	var company Company
 
 	result := Datastore.Model(Company{}).Where(map[string]interface{}{"id": companyId}).Preload("Cards").Preload("RefreshTokens").First(&company)
