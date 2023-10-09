@@ -72,11 +72,13 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Переданная строка не является ссылкой"})
 	}
 	pinger.Count = 3
-	pinger.TTL = 129
+	pinger.TTL = 10
 	err = pinger.Run() // Blocks until finished
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Ссылка не отвечает"})
 	}
+
+	fmt.Println("pinganyl")
 
 	newCard.ID = uuid.Must(uuid.NewV4())
 	newCard.CompanyOwner = company.ID
