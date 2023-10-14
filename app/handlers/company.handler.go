@@ -53,6 +53,8 @@ func CompanyLogoUploadHandler(c *fiber.Ctx) error {
 	companyLogoRaw, err := c.FormFile("companyLogo")
 	company := c.Locals("company").(db.Company)
 
+	fmt.Println("requested")
+
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Invalid request"})
 	}
