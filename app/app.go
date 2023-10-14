@@ -11,9 +11,10 @@ import (
 
 func Start(config db.DatabaseConfig) *fiber.App {
 	app := fiber.New()
+	db.New(fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", config.Host, config.User, config.Password, config.Database))
 
 	app.Use(cors.New(cors.Config{
-		AllowHeaders:     "Origin,Content-Type,Accept,Content-Length,Accept-Language,Accept-Encoding,Connection,Access-Control-Allow-Origin",
+		AllowHeaders:     "Origin,X-Requested-With,Content-Type,Accept,Authorization",
 		AllowOrigins:     "*",
 		AllowCredentials: true,
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
@@ -23,8 +24,6 @@ func Start(config db.DatabaseConfig) *fiber.App {
 	controllers.CardController(app)
 	controllers.CompanyController(app)
 	controllers.TagController(app)
-
-	db.New(fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", config.Host, config.User, config.Password, config.Database))
 
 	return app
 }
