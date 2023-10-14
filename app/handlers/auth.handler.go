@@ -77,7 +77,7 @@ func WhoAmIHandler(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
 
 	atSecretKey := utility.GetEnv("ACCESS_SECRET", "secretAccessKey")
-	accessToken := strings.Split(authHeader, "Bearer ")[1]
+	accessToken := strings.Split(authHeader, " ")[1]
 	claims := &utility.Claims{}
 
 	accessTokenPayload, err := jwt.ParseWithClaims(accessToken, claims, func(token *jwt.Token) (interface{}, error) {
