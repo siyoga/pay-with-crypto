@@ -8,7 +8,6 @@ import (
 	"pay-with-crypto/app/datastore/s3"
 	"pay-with-crypto/app/utility"
 
-	"github.com/go-ping/ping"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid"
 )
@@ -65,20 +64,6 @@ func CardCreatorHandler(c *fiber.Ctx) error {
 	if _, exist := db.GetOneBy[db.Card]("name", newCard.Name); exist {
 		return c.Status(fiber.StatusConflict).JSON(utility.Message{Text: "Карточка с таким именем уже существует"})
 	}
-
-	pinger, err := ping.NewPinger(newCard.LinkToWebsite)
-	if err != nil {
-		fmt.Println(err)
-		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Переданная строка не является ссылкой"})
-	}
-	pinger.Count = 3
-	pinger.TTL = 10
-	err = pinger.Run() // Blocks until finished
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(utility.Message{Text: "Ссылка не отвечает"})
-	}
-
-	fmt.Println("pinganyl")
 
 	newCard.ID = uuid.Must(uuid.NewV4())
 	newCard.CompanyOwner = company.ID
